@@ -27,12 +27,45 @@ export function InfoIcon(): ReactNode {
   );
 }
 
+/*
+ * The cog is generated rather than written out: a literal path of twenty-four
+ * points and twelve arcs is a thing nobody can read or correct. Six teeth, and
+ * wide ones — checked at the 22px it is actually drawn at, where eight finer
+ * teeth close up into their own stroke and the whole icon reads as a blob.
+ */
+const TEETH = 6;
+const TIP_R = 9.5;
+const ROOT_R = 6.3;
+/** Half the angular width of a tooth, and how far the root arc is set in from it. */
+const TOOTH_HALF_DEG = 20;
+const FLANK_DEG = 7;
+
+function polar(radius: number, degrees: number): string {
+  const rad = ((degrees - 90) * Math.PI) / 180;
+  return `${(12 + radius * Math.cos(rad)).toFixed(2)} ${(12 + radius * Math.sin(rad)).toFixed(2)}`;
+}
+
+const COG = Array.from({ length: TEETH }, (_, i) => {
+  const centre = (360 / TEETH) * i;
+  const tipFrom = centre - TOOTH_HALF_DEG;
+  const tipTo = centre + TOOTH_HALF_DEG;
+  const rootFrom = tipTo + FLANK_DEG;
+  const rootTo = centre + 360 / TEETH - TOOTH_HALF_DEG - FLANK_DEG;
+  return [
+    `${i === 0 ? 'M' : 'L'}${polar(TIP_R, tipFrom)}`,
+    `A ${TIP_R} ${TIP_R} 0 0 1 ${polar(TIP_R, tipTo)}`,
+    `L${polar(ROOT_R, rootFrom)}`,
+    `A ${ROOT_R} ${ROOT_R} 0 0 1 ${polar(ROOT_R, rootTo)}`,
+  ].join(' ');
+})
+  .join(' ')
+  .concat(' Z');
+
 export function SettingsIcon(): ReactNode {
   return (
     <svg {...base}>
-      <circle cx="12" cy="12" r="3.4" />
-      <path d="M12 3.2v2.2M12 18.6v2.2M20.8 12h-2.2M5.4 12H3.2" />
-      <path d="M18.22 5.78l-1.56 1.56M7.34 16.66l-1.56 1.56M18.22 18.22l-1.56-1.56M7.34 7.34L5.78 5.78" />
+      <path d={COG} />
+      <circle cx="12" cy="12" r="2.9" />
     </svg>
   );
 }
