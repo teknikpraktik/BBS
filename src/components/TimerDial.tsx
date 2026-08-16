@@ -93,7 +93,13 @@ export function TimerDial({ remainingMs, state }: Props): ReactNode {
           {clock}
         </div>
       </div>
-      <div className="timer__state" aria-live="polite">
+      {/*
+        The state used to be spelled out under the ring. It said nothing the
+        screen did not already say — the ring, the digits and the one button
+        below all change with it — so it is now announced rather than shown,
+        which keeps the state available without a word for it taking up room.
+      */}
+      <div className="visually-hidden" aria-live="polite">
         {STATE_LABEL[state]}
       </div>
     </div>

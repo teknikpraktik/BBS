@@ -293,9 +293,16 @@ ol {
   color: var(--ink-faint);
 }
 
+/*
+ * The position counter in the top bar. It is the only thing that tells you how
+ * far into a workout you are, so it is set in secondary ink rather than the
+ * faint grey the other labels use — a label you actually read, not chrome.
+ */
 .label--num {
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-body);
+  letter-spacing: 0.06em;
+  color: var(--ink-secondary);
 }
 
 .title {
@@ -600,17 +607,6 @@ ol {
   color: var(--ink);
 }
 
-.timer__state {
-  font-size: var(--fs-label);
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  /* Reserved whether or not there is a word in it, so the dial never jumps. */
-  min-height: 21px;
-}
-
 .timer--paused .timer__value {
   color: var(--ink-muted);
 }
@@ -625,26 +621,28 @@ ol {
 
 .weight {
   display: grid;
-  grid-template-columns: 64px 1fr 64px;
+  grid-template-columns: 70px 1fr 70px;
   align-items: center;
   gap: 10px;
   padding: 6px 0 2px;
   flex: none;
 }
 
+/* The step is an action, so it is set at the size the buttons are, not the
+   size a caption is. The circle grew with it. */
 .weight__step {
-  width: 64px;
-  height: 64px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: 1px solid var(--control-line);
   background: var(--control-bg);
   color: var(--ink);
   display: grid;
   place-items: center;
-  font-size: var(--fs-sm);
-  font-weight: 500;
+  font-size: var(--fs-action);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
