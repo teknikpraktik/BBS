@@ -203,14 +203,18 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
   /* Actions                                                                 */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * A workout opens on the overview, not on a machine. The standard sequence is
+   * only a suggestion, and the app cannot know which machine is free — so the
+   * first decision of every workout is the user's, not ours.
+   */
   const startWorkout = useCallback(async () => {
     unlockAudio();
     const weights = await getCurrentWeights();
-    const first = EXERCISES[0]!.id;
     commit({
       workout_id: newId(),
       workout_started_at: new Date().toISOString(),
-      current_exercise: first,
+      current_exercise: null,
       completed_exercises: [],
       temporary_weights: weights,
       timer_remaining_ms: SET_DURATION_MS,

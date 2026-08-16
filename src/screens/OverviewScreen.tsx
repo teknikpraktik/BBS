@@ -34,7 +34,13 @@ export function OverviewScreen({ active, onRequestEnd }: Props): ReactNode {
 
       <PageHead
         title="Workout"
-        subtitle={`${remaining} of ${EXERCISES.length} exercises left`}
+        subtitle={
+          // This is the first screen of a workout now, so it has to say the rule
+          // once: the marked exercise is a suggestion, not an instruction.
+          active.completed_exercises.length === 0
+            ? 'Any order works. The suggested one is marked.'
+            : `${remaining} of ${EXERCISES.length} exercises left`
+        }
       />
 
       <ul className="list">

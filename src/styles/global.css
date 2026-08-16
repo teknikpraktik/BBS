@@ -54,15 +54,6 @@
   --font-display: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Display',
     'Segoe UI Variable Display', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial,
     sans-serif;
-  /*
-   * The clock is an instrument, so it is set in the technical face the platform
-   * already ships — SF Mono on iOS, Roboto Mono on Android. Every digit is the
-   * same width by construction, which is what stops the number shifting under
-   * you as it counts down. No web font: this app has to start on a dead
-   * connection in a gym basement.
-   */
-  --font-clock: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono',
-    'Segoe UI Mono', 'Roboto Mono', 'Liberation Mono', Consolas, monospace;
 
   /* One scale, and it is deliberately short: everything that is text sits at
      --fs-body or within two points of it. Labels are told apart from body copy
@@ -592,14 +583,19 @@ ol {
   transition: stroke-dashoffset 120ms linear;
 }
 
+/*
+ * The platform's display face, set heavy and tight. Tabular figures give the
+ * one thing a monospaced clock was there for — digits that do not change width
+ * as they count — without the typewriter shapes that come with it. No web
+ * font: this app has to start on a dead connection.
+ */
 .timer__value {
-  font-family: var(--font-clock);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  font-feature-settings: 'tnum' 1;
   font-size: var(--fs-clock);
-  font-weight: 500;
-  /* Mono faces set their own generous sidebearings; pull them back in. */
-  letter-spacing: -0.055em;
+  font-weight: 600;
+  letter-spacing: -0.045em;
   line-height: 1;
   color: var(--ink);
 }
