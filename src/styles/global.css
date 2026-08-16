@@ -54,11 +54,22 @@
   --font-display: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Display',
     'Segoe UI Variable Display', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial,
     sans-serif;
+  /*
+   * The clock is an instrument, so it is set in the technical face the platform
+   * already ships — SF Mono on iOS, Roboto Mono on Android. Every digit is the
+   * same width by construction, which is what stops the number shifting under
+   * you as it counts down. No web font: this app has to start on a dead
+   * connection in a gym basement.
+   */
+  --font-clock: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono',
+    'Segoe UI Mono', 'Roboto Mono', 'Liberation Mono', Consolas, monospace;
 
-  /* One scale, and it is deliberately short. Everything that is text sits at
-     --fs-body or within a point of it; the rest of the list is exceptions. */
-  --fs-label: 13px; /* uppercase micro labels, tracked out */
-  --fs-caption: 15px; /* metadata, hints */
+  /* One scale, and it is deliberately short: everything that is text sits at
+     --fs-body or within two points of it. Labels are told apart from body copy
+     by their tracking and their case, never by being small enough to squint at
+     — nothing in the app is under 15 px. */
+  --fs-label: 15px; /* uppercase labels, tracked out */
+  --fs-caption: 16px; /* metadata, hints */
   --fs-sm: 16px; /* dense data, where 17 would wrap */
   --fs-body: 17px; /* body copy, titles, values — nearly everything */
   --fs-lg: 19px; /* dialog titles */
@@ -501,8 +512,9 @@ ol {
 .home__sub {
   font-size: var(--fs-label);
   font-weight: 500;
-  letter-spacing: 0.28em;
-  text-indent: 0.28em;
+  /* Tracking eased as the size came up; 0.28em at 15px runs off a 320px phone. */
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
@@ -581,12 +593,13 @@ ol {
 }
 
 .timer__value {
-  font-family: var(--font-display);
+  font-family: var(--font-clock);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
   font-size: var(--fs-clock);
-  font-weight: 300;
-  letter-spacing: -0.04em;
+  font-weight: 500;
+  /* Mono faces set their own generous sidebearings; pull them back in. */
+  letter-spacing: -0.055em;
   line-height: 1;
   color: var(--ink);
 }
@@ -594,10 +607,12 @@ ol {
 .timer__state {
   font-size: var(--fs-label);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-faint);
-  min-height: 17px;
+  color: var(--ink-muted);
+  /* Reserved whether or not there is a word in it, so the dial never jumps. */
+  min-height: 21px;
 }
 
 .timer--paused .timer__value {
@@ -662,7 +677,7 @@ ol {
 }
 
 .weight__unit {
-  font-size: 0.42em;
+  font-size: 0.5em;
   font-weight: 500;
   color: var(--ink-muted);
   margin-left: 0.3em;
@@ -770,14 +785,14 @@ ol {
 }
 
 .badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--emphasis-ink);
   background: var(--emphasis);
   border-radius: var(--r-pill);
-  padding: 3px 9px 3px 10px;
+  padding: 3px 10px 3px 11px;
   line-height: 1.5;
   flex: none;
 }
@@ -881,17 +896,19 @@ ol {
   margin-bottom: 36px;
 }
 
-/* On the narrowest phones the table steps down one place on the scale rather
-   than scrolling sideways. */
+/* On the narrowest phones the table steps down to the floor of the scale and
+   tightens its columns, rather than scrolling sideways. */
 @media (max-width: 380px) {
   .history-cell {
-    font-size: var(--fs-caption);
+    font-size: var(--fs-label);
+    padding-left: 4px;
+    letter-spacing: -0.02em;
   }
 
-  .history-cell--date {
-    font-size: var(--fs-label);
-    text-transform: none;
-    letter-spacing: 0;
+  /* Tracked-out uppercase is what makes these headers wide, not their size. */
+  .history-table th {
+    letter-spacing: 0.02em;
+    padding-left: 4px;
   }
 }
 
@@ -939,9 +956,13 @@ ol {
   stroke-width: 1;
 }
 
+/*
+ * In viewBox units, not pixels: the chart is 320 units wide and scales to its
+ * container, so 16 here lands at roughly 14 to 16 real pixels on a phone.
+ */
 .chart__axis-label {
-  fill: var(--ink-faint);
-  font-size: 11px;
+  fill: var(--ink-muted);
+  font-size: 16px;
   font-family: var(--font);
 }
 

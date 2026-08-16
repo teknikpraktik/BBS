@@ -14,8 +14,13 @@ interface Props {
 }
 
 const W = 320;
-const H = 132;
-const PAD = { top: 12, right: 10, bottom: 22, left: 34 };
+const H = 142;
+/*
+ * Left and bottom hold the axis labels, which are set large enough to read.
+ * The left pad fits the widest label the app can produce, "497.5", without it
+ * hanging off the edge of the chart.
+ */
+const PAD = { top: 12, right: 10, bottom: 28, left: 54 };
 
 /**
  * A plain plot of recorded weights over time. No trend line, no projection, no
@@ -78,11 +83,11 @@ export function ProgressChart({ name, points }: Props): ReactNode {
         <line className="chart__grid" x1={PAD.left} x2={W - PAD.right} y1={y(maxKg)} y2={y(maxKg)} />
         <line className="chart__grid" x1={PAD.left} x2={W - PAD.right} y1={y(minKg)} y2={y(minKg)} />
 
-        <text className="chart__axis-label" x={PAD.left - 6} y={y(maxKg) + 3} textAnchor="end">
+        <text className="chart__axis-label" x={PAD.left - 6} y={y(maxKg) + 5.5} textAnchor="end">
           {formatWeight(maxKg)}
         </text>
         {minKg !== maxKg ? (
-          <text className="chart__axis-label" x={PAD.left - 6} y={y(minKg) + 3} textAnchor="end">
+          <text className="chart__axis-label" x={PAD.left - 6} y={y(minKg) + 5.5} textAnchor="end">
             {formatWeight(minKg)}
           </text>
         ) : null}
