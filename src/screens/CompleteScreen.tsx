@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { EXERCISES } from '../lib/exercises.ts';
 import { formatWeight } from '../lib/format.ts';
 import { useWorkout } from '../state/workout.tsx';
@@ -24,11 +25,9 @@ export function CompleteScreen({ active }: Props): ReactNode {
 
   return (
     <div className="screen screen--scroll">
-      <header className="topbar" />
+      <TopBar />
 
-      <h1 className="title" style={{ marginBottom: 20 }}>
-        Workout Complete
-      </h1>
+      <PageHead title="Workout Complete" subtitle="Recorded on this device." />
 
       <div className="summary">
         {EXERCISES.map((item) => (
@@ -47,7 +46,7 @@ export function CompleteScreen({ active }: Props): ReactNode {
       <button
         type="button"
         className="btn btn--primary btn--hero btn--block"
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 28 }}
         onClick={() => void finish()}
       >
         Finish

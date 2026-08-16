@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { BackIcon } from '../components/Icons.tsx';
 import { goBack } from '../lib/router.ts';
 import { playCue } from '../lib/feedback.ts';
@@ -18,15 +19,15 @@ export function Settings(): ReactNode {
 
   return (
     <div className="screen screen--scroll">
-      <header className="topbar">
-        <IconButton label="Back" onClick={() => goBack('')}>
-          <BackIcon />
-        </IconButton>
-      </header>
+      <TopBar
+        lead={
+          <IconButton label="Back" onClick={() => goBack('')}>
+            <BackIcon />
+          </IconButton>
+        }
+      />
 
-      <h1 className="title" style={{ marginBottom: 20 }}>
-        Settings
-      </h1>
+      <PageHead title="Settings" />
 
       <div className="field">
         <span className="field__label" id="appearance-label">
@@ -91,7 +92,7 @@ export function Settings(): ReactNode {
         />
       </div>
 
-      <p className="field__hint" style={{ marginTop: 20 }}>
+      <p className="field__hint" style={{ marginTop: 22 }}>
         Settings are stored on this device.
       </p>
     </div>

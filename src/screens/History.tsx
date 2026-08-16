@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { BackIcon } from '../components/Icons.tsx';
 import { ProgressChart, type ChartPoint } from '../components/ProgressChart.tsx';
 import { EXERCISES } from '../lib/exercises.ts';
@@ -20,15 +21,23 @@ export function History(): ReactNode {
 
   return (
     <div className="screen screen--scroll">
-      <header className="topbar">
-        <IconButton label="Back" onClick={() => goBack('')}>
-          <BackIcon />
-        </IconButton>
-      </header>
+      <TopBar
+        lead={
+          <IconButton label="Back" onClick={() => goBack('')}>
+            <BackIcon />
+          </IconButton>
+        }
+      />
 
-      <h1 className="title" style={{ marginBottom: 16 }}>
-        History
-      </h1>
+      <PageHead
+        title="History"
+        subtitle={
+          workouts.length === 0
+            ? undefined
+            : `${workouts.length} completed ${workouts.length === 1 ? 'workout' : 'workouts'}`
+        }
+        tight
+      />
 
       {loading ? null : workouts.length === 0 ? (
         <p className="empty">No completed workouts yet.</p>
@@ -75,10 +84,10 @@ export function History(): ReactNode {
             </table>
           </div>
 
-          <h2 className="section-title" style={{ marginBottom: 12 }}>
+          <h2 className="section-title" style={{ marginBottom: 16 }}>
             Progress
           </h2>
-          <div className="stack" style={{ gap: 28, paddingBottom: 8 }}>
+          <div className="stack" style={{ gap: 30, paddingBottom: 8 }}>
             {EXERCISES.map((e) => {
               const points: ChartPoint[] = chronological.map((w) => ({
                 at: w.completed_at,

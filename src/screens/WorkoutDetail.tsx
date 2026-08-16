@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { BackIcon } from '../components/Icons.tsx';
 import { getWorkout } from '../lib/db.ts';
 import { EXERCISES } from '../lib/exercises.ts';
@@ -31,19 +32,19 @@ export function WorkoutDetail({ workoutId }: Props): ReactNode {
 
   return (
     <div className="screen screen--scroll">
-      <header className="topbar">
-        <IconButton label="Back" onClick={() => goBack('history')}>
-          <BackIcon />
-        </IconButton>
-      </header>
+      <TopBar
+        lead={
+          <IconButton label="Back" onClick={() => goBack('history')}>
+            <BackIcon />
+          </IconButton>
+        }
+      />
 
       {missing ? <p className="empty">This workout is no longer available.</p> : null}
 
       {workout ? (
         <>
-          <h1 className="title" style={{ marginBottom: 20 }}>
-            {formatDateLong(workout.completed_at)}
-          </h1>
+          <PageHead title={formatDateLong(workout.completed_at)} />
 
           <div className="summary">
             {EXERCISES.map((item) => (

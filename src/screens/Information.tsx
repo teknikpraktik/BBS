@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { BackIcon } from '../components/Icons.tsx';
 import { EXERCISES } from '../lib/exercises.ts';
 import { goBack } from '../lib/router.ts';
 
 function Section({ title, children }: { title: string; children: ReactNode }): ReactNode {
   return (
-    <section className="stack" style={{ gap: 8 }}>
+    <section className="stack" style={{ gap: 10 }}>
       <h2 className="section-title">{title}</h2>
       <div className="prose muted">{children}</div>
     </section>
@@ -20,24 +21,24 @@ function Section({ title, children }: { title: string; children: ReactNode }): R
 export function Information(): ReactNode {
   return (
     <div className="screen screen--scroll">
-      <header className="topbar">
-        <IconButton label="Back" onClick={() => goBack('')}>
-          <BackIcon />
-        </IconButton>
-      </header>
+      <TopBar
+        lead={
+          <IconButton label="Back" onClick={() => goBack('')}>
+            <BackIcon />
+          </IconButton>
+        }
+      />
 
-      <h1 className="title" style={{ marginBottom: 24 }}>
-        Information
-      </h1>
+      <PageHead title="Information" subtitle="How this app runs the protocol." />
 
-      <div className="stack" style={{ gap: 26, paddingBottom: 24 }}>
+      <div className="stack" style={{ gap: 30, paddingBottom: 24 }}>
         <Section title="The Big Five">
           <p>
             BBS is built around five compound machine exercises that together cover the major
             movement patterns of the body: a horizontal pull, a horizontal push, a vertical pull, a
             vertical push, and a leg movement.
           </p>
-          <ol style={{ marginTop: 10 }}>
+          <ol>
             {EXERCISES.map((e) => (
               <li key={e.id}>{e.name}</li>
             ))}
@@ -61,12 +62,12 @@ export function Information(): ReactNode {
 
         <Section title="Exercise Order">
           <p>The standard sequence is:</p>
-          <ol style={{ marginTop: 10 }}>
+          <ol>
             {EXERCISES.map((e) => (
               <li key={e.id}>{e.name}</li>
             ))}
           </ol>
-          <p style={{ marginTop: 10 }}>
+          <p>
             The app highlights the next exercise in this order, but you are not bound to it. If a
             machine is occupied, pick any exercise you have not done yet and come back to the others
             later. The workout is complete when all five are done, in whatever order you took them.

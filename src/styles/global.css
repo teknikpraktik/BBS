@@ -1,91 +1,130 @@
 /* =========================================================================
    BBS design system.
+
+   Monochrome by rule: black, white and grey only. Nothing in the interface
+   is coloured, so emphasis has to be earned with size, weight and space.
    Light and dark are the same system with swapped tokens, never two looks.
    ========================================================================= */
 
 :root {
-  /* Surfaces and ink */
-  --bg: #f4f4f1;
-  --surface: #fbfbfa;
+  /* ------------------------------------------------------------- surfaces */
+  --bg: #f2f2f3;
+  --surface: #ffffff;
   --surface-raised: #ffffff;
-  --line: #e0dfd9;
-  --line-strong: #c9c8c1;
-  --ink: #17181b;
-  --ink-muted: #6a6e74;
-  --ink-faint: #9a9ea4;
+  --line: #e4e4e6;
+  --line-strong: #cfcfd3;
 
-  /* One restrained accent, used for the timer and for "now" markers. */
-  --accent: #4f7a71;
-  --accent-ink: #ffffff;
-  --accent-faint: rgba(79, 122, 113, 0.12);
+  /* ------------------------------------------------------------------ ink */
+  --ink: #0a0a0b;
+  --ink-secondary: #45464a;
+  --ink-muted: #6e6f75;
+  --ink-faint: #9a9ba1;
 
-  --danger: #a2453c;
+  /* Emphasis is ink, never a hue. Kept as a token so intent stays readable. */
+  --emphasis: var(--ink);
+  --emphasis-ink: #ffffff;
+  --emphasis-soft: rgba(10, 10, 11, 0.05);
 
-  /* Controls */
+  /* --------------------------------------------------------- controls */
   --control-bg: #ffffff;
-  --control-bg-active: #eceae4;
-  --control-line: #d6d5ce;
+  --control-bg-active: #e9e9eb;
+  --control-line: #d8d8db;
+  --track: #e6e6e8;
 
-  --radius: 14px;
-  --radius-lg: 20px;
-  --shadow: 0 1px 2px rgba(20, 20, 22, 0.05), 0 8px 24px rgba(20, 20, 22, 0.05);
+  /* --------------------------------------------------------------- form */
+  /* Soft, consistent curvature. Small parts round less than large ones. */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
 
-  --tap: 56px;
+  --shadow-sm: 0 1px 2px rgba(10, 10, 11, 0.05);
+  --shadow-lg: 0 2px 6px rgba(10, 10, 11, 0.06), 0 20px 48px rgba(10, 10, 11, 0.14);
 
-  --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter,
-    Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-num: ui-sans-serif, -apple-system, 'SF Pro Display', 'Segoe UI', Inter,
-    Roboto, sans-serif;
+  /* --------------------------------------------------------------- type */
+  --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'Segoe UI Variable Text', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-display: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'Segoe UI Variable Display', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+
+  /* One scale. Every size in the app is drawn from it. */
+  --fs-label: 12px; /* uppercase micro labels */
+  --fs-caption: 13px; /* metadata, hints */
+  --fs-sm: 15px; /* secondary controls, dense data */
+  --fs-body: 17px; /* body copy and primary controls */
+  --fs-lg: 20px; /* dialog titles, hero buttons */
+  --fs-numeric: 24px; /* recorded values in lists */
+  --fs-title: clamp(28px, 7.5vw, 34px); /* screen titles */
+  /* Sized so the widest possible weight, 497.5 kg, still fits between the
+     steppers on a 320 px phone. */
+  --fs-hero: clamp(32px, 10vw, 44px); /* the one number on a screen */
+  --fs-display: clamp(64px, 21vw, 92px); /* wordmark, running clock */
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.3;
+  --lh-body: 1.55;
+
+  /* ------------------------------------------------------------- metrics */
+  --tap: 52px; /* minimum comfortable target */
+  --nav: 44px; /* chrome controls: quieter than content */
+  --gutter: 22px; /* the single horizontal rhythm of the app */
 
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0b0b0c;
-    --surface: #131416;
-    --surface-raised: #191a1d;
-    --line: #26282c;
-    --line-strong: #34373c;
-    --ink: #ececee;
-    --ink-muted: #9498a0;
-    --ink-faint: #64686f;
+    --bg: #0a0a0b;
+    --surface: #151517;
+    --surface-raised: #1c1c1f;
+    --line: #262629;
+    --line-strong: #3a3a3f;
 
-    --accent: #86b3a8;
-    --accent-ink: #0b0b0c;
-    --accent-faint: rgba(134, 179, 168, 0.14);
+    --ink: #f4f4f6;
+    --ink-secondary: #c2c3c8;
+    --ink-muted: #96979d;
+    --ink-faint: #68696f;
 
-    --danger: #d0796f;
+    --emphasis: var(--ink);
+    --emphasis-ink: #0a0a0b;
+    --emphasis-soft: rgba(244, 244, 246, 0.07);
 
-    --control-bg: #1a1c1f;
-    --control-bg-active: #24272b;
-    --control-line: #303338;
+    --control-bg: #1a1a1d;
+    --control-bg-active: #27272b;
+    --control-line: #34343a;
+    --track: #2a2a2e;
 
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 20px 48px rgba(0, 0, 0, 0.55);
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #0b0b0c;
-  --surface: #131416;
-  --surface-raised: #191a1d;
-  --line: #26282c;
-  --line-strong: #34373c;
-  --ink: #ececee;
-  --ink-muted: #9498a0;
-  --ink-faint: #64686f;
+  --bg: #0a0a0b;
+  --surface: #151517;
+  --surface-raised: #1c1c1f;
+  --line: #262629;
+  --line-strong: #3a3a3f;
 
-  --accent: #86b3a8;
-  --accent-ink: #0b0b0c;
-  --accent-faint: rgba(134, 179, 168, 0.14);
+  --ink: #f4f4f6;
+  --ink-secondary: #c2c3c8;
+  --ink-muted: #96979d;
+  --ink-faint: #68696f;
 
-  --danger: #d0796f;
+  --emphasis: var(--ink);
+  --emphasis-ink: #0a0a0b;
+  --emphasis-soft: rgba(244, 244, 246, 0.07);
 
-  --control-bg: #1a1c1f;
-  --control-bg-active: #24272b;
-  --control-line: #303338;
+  --control-bg: #1a1a1d;
+  --control-bg-active: #27272b;
+  --control-line: #34343a;
+  --track: #2a2a2e;
 
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 20px 48px rgba(0, 0, 0, 0.55);
 }
 
 /* ------------------------------------------------------------------ reset */
@@ -107,15 +146,18 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
 button {
   font: inherit;
+  letter-spacing: inherit;
   color: inherit;
   margin: 0;
 }
@@ -131,13 +173,13 @@ ol {
 
 ul,
 ol {
-  padding-left: 1.2em;
+  padding-left: 1.15em;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 /* ----------------------------------------------------------------- layout */
@@ -146,9 +188,9 @@ ol {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
-    max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
-  max-width: 560px;
+  padding: max(8px, env(safe-area-inset-top)) max(var(--gutter), env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  max-width: 520px;
   margin: 0 auto;
   width: 100%;
 }
@@ -157,18 +199,64 @@ ol {
   overflow-y: auto;
 }
 
+/* --------------------------------------------------------------- top bar */
+
+/*
+ * One bar on every screen, always the same height, so the content below it
+ * starts on the same line everywhere. The bar keeps three slots — leading,
+ * centre, trailing — and holds its height even when a slot is empty.
+ */
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  min-height: var(--tap);
+  height: var(--nav);
+  flex: none;
 }
 
-.topbar__actions {
+.topbar__lead {
   display: flex;
+  justify-content: flex-start;
+}
+
+.topbar__center {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.topbar__trail {
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
+  gap: 2px;
+}
+
+/*
+ * Icon buttons hang into the gutter so the icon itself, not its tap target,
+ * lines up with the left edge of the title below.
+ */
+.topbar__lead .icon-btn {
+  margin-left: -11px;
+}
+
+.topbar__trail .icon-btn {
+  margin-right: -11px;
+}
+
+/* ------------------------------------------------------------- page head */
+
+.page-head {
+  padding: 20px 0 24px;
+  display: flex;
+  flex-direction: column;
   gap: 4px;
+  flex: none;
+}
+
+.page-head--tight {
+  padding-bottom: 18px;
 }
 
 .stack {
@@ -182,34 +270,52 @@ ol {
 
 /* ------------------------------------------------------------ typography */
 
-.eyebrow {
-  font-size: 12px;
+.label {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.label--num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: var(--lh-tight);
+}
+
+.section-title {
+  font-size: var(--fs-label);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
-.title {
-  font-size: 30px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.section-title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-
 .muted {
+  color: var(--ink-secondary);
+}
+
+.faint {
   color: var(--ink-muted);
 }
 
-.prose p + p {
+.prose {
+  font-size: var(--fs-sm);
+  line-height: 1.62;
+}
+
+.prose p + p,
+.prose ol,
+.prose ul {
   margin-top: 10px;
 }
 
@@ -226,33 +332,35 @@ ol {
   gap: 8px;
   min-height: var(--tap);
   padding: 0 24px;
-  border-radius: var(--radius);
+  border-radius: var(--r-md);
   border: 1px solid transparent;
   background: var(--control-bg);
   color: var(--ink);
-  font-size: 17px;
+  font-size: var(--fs-body);
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease,
+    transform 140ms ease;
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
 .btn--primary {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
+  background: var(--emphasis);
+  color: var(--emphasis-ink);
+  border-color: var(--emphasis);
 }
 
 .btn--primary:active:not(:disabled) {
-  opacity: 0.85;
+  opacity: 0.82;
+  transform: scale(0.985);
 }
 
 .btn--outline {
@@ -262,53 +370,66 @@ ol {
 
 .btn--outline:active:not(:disabled) {
   background: var(--control-bg-active);
+  transform: scale(0.985);
 }
 
-.btn--ghost {
+.btn--quiet {
   background: transparent;
   border-color: transparent;
   color: var(--ink-muted);
+  font-weight: 400;
 }
 
-.btn--ghost:active:not(:disabled) {
-  background: var(--control-bg-active);
+.btn--quiet:active:not(:disabled) {
+  background: var(--emphasis-soft);
 }
 
-.btn--danger {
+/*
+ * Destructive, in a palette with no red available. It is set apart by being
+ * the quietest button on screen rather than the loudest, and the label always
+ * names the consequence.
+ */
+.btn--destructive {
   background: transparent;
-  border-color: var(--control-line);
-  color: var(--danger);
+  border-color: var(--line);
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.btn--destructive:active:not(:disabled) {
+  background: var(--control-bg-active);
 }
 
 .btn--block {
   width: 100%;
 }
 
+/* The one action a screen is about. */
 .btn--hero {
-  min-height: 76px;
-  font-size: 20px;
+  min-height: 68px;
+  font-size: var(--fs-lg);
   font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-lg);
 }
 
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--tap);
-  height: var(--tap);
-  border-radius: 50%;
+  width: var(--nav);
+  height: var(--nav);
+  border-radius: var(--r-pill);
   border: none;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--ink);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background-color 140ms ease;
 }
 
 .icon-btn:active {
-  background: var(--control-bg-active);
+  background: var(--emphasis-soft);
 }
 
 .icon-btn svg {
@@ -326,50 +447,58 @@ ol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  flex: 1;
   justify-content: center;
+  flex: 1;
+  gap: 18px;
+  padding-bottom: 12px;
 }
 
+/* The wordmark is the whole of the home screen's identity: set it large. */
 .home__wordmark {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.42em;
-  text-indent: 0.42em;
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-indent: 0.06em;
+  line-height: 1;
   color: var(--ink);
 }
 
 .home__sub {
-  font-size: 13px;
-  letter-spacing: 0.06em;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .home__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-bottom: 8px;
+  gap: 10px;
+  flex: none;
 }
 
 /* -------------------------------------------------------------- exercise */
 
 .exercise {
-  gap: 8px;
+  gap: 0;
+}
+
+.exercise__head {
+  padding: 14px 0 6px;
+  text-align: center;
+  flex: none;
 }
 
 .exercise__name {
-  font-size: clamp(22px, 6.5vw, 28px);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 6.6vw, 30px);
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-align: center;
+  letter-spacing: -0.02em;
+  line-height: var(--lh-tight);
   color: var(--ink);
-}
-
-.exercise__position {
-  text-align: center;
-  margin-top: 4px;
 }
 
 .timer {
@@ -378,13 +507,13 @@ ol {
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 12px;
+  gap: 14px;
   min-height: 0;
 }
 
 .timer__dial {
   position: relative;
-  width: min(78vw, 320px);
+  width: min(74vw, 300px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -400,36 +529,36 @@ ol {
 
 .timer__ring-track {
   fill: none;
-  stroke: var(--line);
-  stroke-width: 2.5;
+  stroke: var(--track);
+  stroke-width: 2;
 }
 
 .timer__ring-progress {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5;
+  stroke: var(--ink);
+  stroke-width: 2;
   stroke-linecap: round;
-  transition: stroke-dashoffset 120ms linear;
+  transition: stroke-dashoffset 120ms linear, stroke 200ms ease;
 }
 
 .timer__value {
-  font-family: var(--font-num);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
-  font-size: clamp(56px, 21vw, 96px);
-  font-weight: 300;
-  letter-spacing: -0.03em;
+  font-size: clamp(56px, 20vw, 88px);
+  font-weight: 200;
+  letter-spacing: -0.04em;
   line-height: 1;
   color: var(--ink);
 }
 
 .timer__state {
-  font-size: 12px;
+  font-size: var(--fs-label);
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  min-height: 18px;
+  min-height: 17px;
 }
 
 .timer--paused .timer__value {
@@ -444,63 +573,67 @@ ol {
 
 .weight {
   display: grid;
-  grid-template-columns: var(--tap) 1fr var(--tap);
-  grid-auto-rows: minmax(72px, auto);
+  grid-template-columns: 64px 1fr 64px;
   align-items: center;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 10px;
+  padding: 6px 0 2px;
+  flex: none;
 }
 
 .weight__step {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 1px solid var(--control-line);
   background: var(--control-bg);
   color: var(--ink);
   display: grid;
   place-items: center;
-  font-size: 15px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   justify-self: center;
+  transition: background-color 140ms ease, transform 140ms ease;
 }
 
 .weight__step:active:not(:disabled) {
   background: var(--control-bg-active);
+  transform: scale(0.95);
 }
 
 .weight__step:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
 }
 
 .weight__value {
   text-align: center;
-  font-family: var(--font-num);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(30px, 9vw, 40px);
+  font-size: var(--fs-hero);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   line-height: 1;
 }
 
 .weight__unit {
-  font-size: 0.5em;
+  font-size: 0.42em;
   font-weight: 500;
   color: var(--ink-muted);
-  margin-left: 0.25em;
-  letter-spacing: 0.02em;
+  margin-left: 0.3em;
+  letter-spacing: 0;
 }
 
 .exercise__actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 8px;
+  padding-top: 18px;
+  flex: none;
 }
 
 /* --------------------------------------------------------------- overview */
@@ -519,48 +652,48 @@ ol {
   align-items: center;
   gap: 14px;
   width: 100%;
-  min-height: 68px;
-  padding: 12px 16px;
-  border-radius: var(--radius);
+  min-height: 72px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
   border: 1px solid var(--line);
   background: var(--surface);
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background-color 140ms ease, transform 140ms ease;
 }
 
-.row:active {
+.row:active:not(:disabled) {
   background: var(--control-bg-active);
+  transform: scale(0.99);
 }
 
+/* The next exercise is marked by weight, not colour: a ring in ink. */
 .row--next {
-  border-color: var(--accent);
-  background: var(--accent-faint);
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 .row--done {
   cursor: default;
   background: transparent;
-  border-style: dashed;
-  color: var(--ink-muted);
-}
-
-.row--done:active {
-  background: transparent;
+  border-color: var(--line);
+  color: var(--ink-faint);
 }
 
 .row__mark {
-  width: 26px;
+  width: 22px;
   display: grid;
   place-items: center;
-  color: var(--accent);
+  color: var(--ink-faint);
   flex: none;
 }
 
 .row__mark svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
 }
 
 .row__body {
@@ -570,38 +703,41 @@ ol {
 
 .row__name {
   display: block;
-  font-size: 17px;
+  font-size: var(--fs-body);
   font-weight: 500;
-}
-
-.row--done .row__name {
-  text-decoration: line-through;
-  text-decoration-color: var(--ink-faint);
-  text-decoration-thickness: 1px;
+  letter-spacing: -0.012em;
 }
 
 .row__meta {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-caption);
   color: var(--ink-faint);
 }
 
 .row__value {
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-size: 17px;
+  font-size: var(--fs-body);
+  font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--ink-muted);
   flex: none;
 }
 
+.row--done .row__value {
+  color: var(--ink-faint);
+}
+
 .badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  padding: 2px 8px;
+  color: var(--emphasis-ink);
+  background: var(--emphasis);
+  border-radius: var(--r-pill);
+  padding: 3px 9px 3px 10px;
+  line-height: 1.5;
   flex: none;
 }
 
@@ -611,6 +747,7 @@ ol {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--line);
+  flex: none;
 }
 
 .summary__item {
@@ -618,20 +755,22 @@ ol {
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 2px;
+  padding: 17px 2px;
   border-bottom: 1px solid var(--line);
 }
 
 .summary__name {
-  font-size: 16px;
+  font-size: var(--fs-body);
+  letter-spacing: -0.012em;
   color: var(--ink);
 }
 
 .summary__value {
-  font-family: var(--font-num);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-size: 22px;
+  font-size: var(--fs-numeric);
   font-weight: 400;
+  letter-spacing: -0.025em;
 }
 
 /* -------------------------------------------------------------- history */
@@ -646,13 +785,13 @@ ol {
   position: sticky;
   top: 0;
   background: var(--bg);
-  font-size: 11px;
+  font-size: var(--fs-label);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
   text-align: right;
-  padding: 8px 0 8px 6px;
+  padding: 8px 0 10px 6px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
@@ -680,15 +819,15 @@ ol {
 /* Sized so a full row fits a narrow phone without horizontal scrolling. */
 .history-cell {
   display: block;
-  padding: 14px 0 14px 6px;
-  font-size: clamp(13px, 4vw, 15px);
+  padding: 15px 0 15px 6px;
+  font-size: var(--fs-sm);
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
 .history-cell--date {
   color: var(--ink-muted);
-  font-size: clamp(12px, 3.6vw, 14px);
-  letter-spacing: 0.01em;
+  font-size: var(--fs-caption);
 }
 
 .history-link {
@@ -698,7 +837,21 @@ ol {
 
 .history-scroll {
   overflow-x: auto;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+}
+
+/* On the narrowest phones the table steps down one place on the scale rather
+   than scrolling sideways. */
+@media (max-width: 380px) {
+  .history-cell {
+    font-size: var(--fs-caption);
+  }
+
+  .history-cell--date {
+    font-size: var(--fs-label);
+    text-transform: none;
+    letter-spacing: 0;
+  }
 }
 
 .history-table tbody tr[data-pending='true'] .history-cell--date::after {
@@ -718,16 +871,17 @@ ol {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .chart__name {
-  font-size: 15px;
+  font-size: var(--fs-sm);
   font-weight: 500;
+  letter-spacing: -0.012em;
 }
 
 .chart__range {
-  font-size: 13px;
+  font-size: var(--fs-caption);
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
 }
@@ -752,8 +906,8 @@ ol {
 
 .chart__line {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.75;
+  stroke: var(--ink);
+  stroke-width: 1.5;
   stroke-linejoin: round;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
@@ -761,12 +915,12 @@ ol {
 
 .chart__dot {
   fill: var(--bg);
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 1.5;
 }
 
 .chart__empty {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   color: var(--ink-faint);
   padding: 12px 0;
 }
@@ -778,87 +932,95 @@ ol {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 64px;
-  padding: 8px 0;
+  min-height: 62px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
 
+.field:first-of-type {
+  border-top: 1px solid var(--line);
+}
+
 .field__label {
-  font-size: 17px;
+  font-size: var(--fs-body);
+  letter-spacing: -0.012em;
 }
 
 .field__hint {
-  font-size: 13px;
+  font-size: var(--fs-caption);
   color: var(--ink-faint);
+  line-height: 1.45;
 }
 
 .segmented {
   display: inline-flex;
   padding: 3px;
-  gap: 3px;
-  background: var(--control-bg-active);
-  border-radius: 12px;
+  gap: 2px;
+  background: var(--track);
+  border-radius: var(--r-md);
 }
 
 .segmented__option {
   border: none;
   background: transparent;
   color: var(--ink-muted);
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 9px;
-  font-size: 15px;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 13px;
+  font-size: var(--fs-sm);
+  letter-spacing: -0.01em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: color 140ms ease;
 }
 
 .segmented__option[aria-pressed='true'] {
   background: var(--surface-raised);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-sm);
   font-weight: 500;
 }
 
 .switch {
   position: relative;
-  width: 56px;
-  height: 34px;
+  width: 52px;
+  height: 32px;
   flex: none;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1px solid var(--control-line);
-  background: var(--control-bg-active);
+  background: var(--track);
   cursor: pointer;
   padding: 0;
-  transition: background-color 140ms ease, border-color 140ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
 .switch[aria-checked='true'] {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--emphasis);
+  border-color: var(--emphasis);
 }
 
 .switch::after {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 26px;
   height: 26px;
   border-radius: 50%;
   background: var(--surface-raised);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 140ms ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .switch[aria-checked='true']::after {
-  transform: translateX(22px);
+  transform: translateX(20px);
 }
 
 .switch:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
@@ -867,12 +1029,12 @@ ol {
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 12, 0.55);
-  backdrop-filter: blur(2px);
+  background: rgba(8, 8, 10, 0.5);
+  backdrop-filter: blur(3px);
   display: grid;
   place-items: end center;
-  padding: 20px;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 10;
 }
 
@@ -881,29 +1043,31 @@ ol {
   max-width: 420px;
   background: var(--surface-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  padding: 22px 20px 20px;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 26px 22px 20px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .dialog__title {
-  font-size: 20px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .dialog__body {
-  font-size: 15px;
+  font-size: var(--fs-sm);
   color: var(--ink-muted);
 }
 
 .dialog__actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 18px;
 }
 
 /* ------------------------------------------------------------------ misc */
@@ -916,8 +1080,9 @@ ol {
 }
 
 .empty {
-  padding: 48px 0;
+  padding: 56px 0;
   text-align: center;
+  font-size: var(--fs-sm);
   color: var(--ink-faint);
 }
 

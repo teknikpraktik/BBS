@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { PageHead, TopBar } from '../components/TopBar.tsx';
 import { CheckIcon, CloseIcon } from '../components/Icons.tsx';
 import { EXERCISES } from '../lib/exercises.ts';
 import { formatWeight } from '../lib/format.ts';
@@ -23,18 +24,18 @@ export function OverviewScreen({ active, onRequestEnd }: Props): ReactNode {
 
   return (
     <div className="screen screen--scroll">
-      <header className="topbar">
-        <IconButton label="End workout" onClick={onRequestEnd}>
-          <CloseIcon />
-        </IconButton>
-        <span className="eyebrow">
-          {remaining} left
-        </span>
-      </header>
+      <TopBar
+        lead={
+          <IconButton label="End workout" onClick={onRequestEnd}>
+            <CloseIcon />
+          </IconButton>
+        }
+      />
 
-      <h1 className="title" style={{ marginBottom: 20 }}>
-        Workout
-      </h1>
+      <PageHead
+        title="Workout"
+        subtitle={`${remaining} of ${EXERCISES.length} exercises left`}
+      />
 
       <ul className="list">
         {EXERCISES.map((item) => {
