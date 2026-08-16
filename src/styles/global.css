@@ -1,9 +1,14 @@
 /* =========================================================================
    BBS design system.
 
-   Monochrome by rule: black, white and grey only. Nothing in the interface
-   is coloured, so emphasis has to be earned with size, weight and space.
-   Light and dark are the same system with swapped tokens, never two looks.
+   Monochrome, with two exceptions that are graphics rather than interface:
+   the product mark and the timer ring, both drawn from the same spectrum.
+   Nothing else is coloured, so emphasis has to be earned with weight and
+   space. Light and dark are the same system with swapped tokens.
+
+   Type is one size. Text does not compete with text — the only things set
+   larger are the action a screen is about and the clock you read from the
+   machine, and both are larger for a reason you can point at.
    ========================================================================= */
 
 :root {
@@ -50,18 +55,25 @@
     'Segoe UI Variable Display', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial,
     sans-serif;
 
-  /* One scale. Every size in the app is drawn from it. */
-  --fs-label: 12px; /* uppercase micro labels */
-  --fs-caption: 13px; /* metadata, hints */
-  --fs-sm: 15px; /* secondary controls, dense data */
-  --fs-body: 17px; /* body copy and primary controls */
-  --fs-lg: 20px; /* dialog titles, hero buttons */
-  --fs-numeric: 24px; /* recorded values in lists */
-  --fs-title: clamp(28px, 7.5vw, 34px); /* screen titles */
+  /* One scale, and it is deliberately short. Everything that is text sits at
+     --fs-body or within a point of it; the rest of the list is exceptions. */
+  --fs-label: 13px; /* uppercase micro labels, tracked out */
+  --fs-caption: 15px; /* metadata, hints */
+  --fs-sm: 16px; /* dense data, where 17 would wrap */
+  --fs-body: 17px; /* body copy, titles, values — nearly everything */
+  --fs-lg: 19px; /* dialog titles */
+  --fs-numeric: 17px; /* recorded values in lists */
+  --fs-title: 21px; /* screen titles */
+
+  /* Exceptions. Actions are loud because you reach for them without reading,
+     and the clock is loud because you read it from a metre away. */
+  --fs-action: 19px; /* every button */
+  --fs-action-hero: 23px; /* the one action a screen is about */
   /* Sized so the widest possible weight, 497.5 kg, still fits between the
      steppers on a 320 px phone. */
-  --fs-hero: clamp(32px, 10vw, 44px); /* the one number on a screen */
-  --fs-display: clamp(64px, 21vw, 92px); /* wordmark, running clock */
+  --fs-hero: clamp(28px, 8.5vw, 34px); /* the one number on a screen */
+  --fs-display: clamp(30px, 8vw, 36px); /* wordmark */
+  --fs-clock: clamp(54px, 18vw, 76px); /* the running clock */
 
   --lh-tight: 1.1;
   --lh-snug: 1.3;
@@ -309,8 +321,8 @@ ol {
 }
 
 .prose {
-  font-size: var(--fs-sm);
-  line-height: 1.62;
+  font-size: var(--fs-body);
+  line-height: 1.6;
 }
 
 .prose p + p,
@@ -336,8 +348,8 @@ ol {
   border: 1px solid transparent;
   background: var(--control-bg);
   color: var(--ink);
-  font-size: var(--fs-body);
-  font-weight: 500;
+  font-size: var(--fs-action);
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
   user-select: none;
@@ -404,11 +416,16 @@ ol {
   width: 100%;
 }
 
-/* The one action a screen is about. */
+/*
+ * The one action a screen is about. In a flat type scale this is the only
+ * thing that gets to be big, which is exactly what makes it findable without
+ * reading — you are holding a machine handle when you reach for it.
+ */
 .btn--hero {
-  min-height: 68px;
-  font-size: var(--fs-lg);
-  font-weight: 500;
+  min-height: 76px;
+  font-size: var(--fs-action-hero);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   border-radius: var(--r-lg);
 }
 
@@ -449,19 +466,36 @@ ol {
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 18px;
+  gap: 20px;
   padding-bottom: 12px;
 }
 
-/* The wordmark is the whole of the home screen's identity: set it large. */
+/*
+ * The mark carries the identity of the home screen, which lets the wordmark
+ * under it stay the same size as the rest of the app's type.
+ */
+.home__logo {
+  display: block;
+  width: min(46vw, 168px);
+  height: auto;
+}
+
 .home__wordmark {
   font-family: var(--font-display);
   font-size: var(--fs-display);
-  font-weight: 300;
-  letter-spacing: 0.06em;
-  text-indent: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
   line-height: 1;
+  text-align: center;
   color: var(--ink);
+}
+
+.home__name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
 }
 
 .home__sub {
@@ -494,8 +528,8 @@ ol {
 
 .exercise__name {
   font-family: var(--font-display);
-  font-size: clamp(24px, 6.6vw, 30px);
-  font-weight: 500;
+  font-size: var(--fs-title);
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: var(--lh-tight);
   color: var(--ink);
@@ -527,26 +561,31 @@ ol {
   transform: rotate(-90deg);
 }
 
+/*
+ * The ring is the one place a glance has to land from across a gym, so it is
+ * thick and it is the spectrum: how much is left reads as an amount of colour
+ * before it reads as an angle. The stroke widths come from the component,
+ * where the geometry that has to agree with them lives.
+ */
 .timer__ring-track {
   fill: none;
   stroke: var(--track);
-  stroke-width: 2;
 }
 
-.timer__ring-progress {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 2;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 120ms linear, stroke 200ms ease;
+.timer__ring-progress path {
+  stroke-linecap: butt;
+}
+
+.timer__ring-mask {
+  transition: stroke-dashoffset 120ms linear;
 }
 
 .timer__value {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
-  font-size: clamp(56px, 20vw, 88px);
-  font-weight: 200;
+  font-size: var(--fs-clock);
+  font-weight: 300;
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--ink);
@@ -565,8 +604,10 @@ ol {
   color: var(--ink-muted);
 }
 
+/* Paused drains the colour out of the ring: a stopped clock should look stopped. */
 .timer--paused .timer__ring-progress {
-  stroke: var(--line-strong);
+  filter: grayscale(1);
+  opacity: 0.45;
 }
 
 /* ------------------------------------------------------------ weight row */
@@ -729,7 +770,7 @@ ol {
 }
 
 .badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -900,7 +941,7 @@ ol {
 
 .chart__axis-label {
   fill: var(--ink-faint);
-  font-size: 9px;
+  font-size: 11px;
   font-family: var(--font);
 }
 

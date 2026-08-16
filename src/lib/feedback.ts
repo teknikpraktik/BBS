@@ -18,17 +18,21 @@ interface Tone {
 }
 
 /**
- * Muted, low, gym-appropriate. The completion cue is a descending pair so it is
- * unmistakably different from the single countdown blips.
+ * Muted and low for everything that happens mid-set, and deliberately not muted
+ * for the end of one. The last set of a workout is reached in a state where you
+ * are not watching the screen, so the completion cue is three bright triangle
+ * tones — the loudest thing the app does, and nothing else in it sounds close.
  */
 const CUES: Record<Cue, Tone[]> = {
   start: [{ freq: 320, duration: 0.11, gain: 0.5 }],
   pause: [{ freq: 200, duration: 0.09, gain: 0.4 }],
   resume: [{ freq: 280, duration: 0.09, gain: 0.4 }],
-  countdown: [{ freq: 440, duration: 0.06, gain: 0.35 }],
+  // The last three seconds are already a warning; make them audible as one.
+  countdown: [{ freq: 660, duration: 0.1, gain: 0.6, type: 'triangle' }],
   complete: [
-    { freq: 300, duration: 0.16, gain: 0.55 },
-    { freq: 180, duration: 0.42, gain: 0.6, delay: 0.16 },
+    { freq: 880, duration: 0.19, gain: 0.95, type: 'triangle' },
+    { freq: 880, duration: 0.19, gain: 0.95, delay: 0.24, type: 'triangle' },
+    { freq: 587, duration: 0.75, gain: 1, delay: 0.48, type: 'triangle' },
   ],
 };
 
@@ -36,8 +40,8 @@ const VIBRATIONS: Record<Cue, number | number[]> = {
   start: 25,
   pause: 15,
   resume: 15,
-  countdown: 12,
-  complete: [60, 70, 160],
+  countdown: 30,
+  complete: [140, 90, 140, 90, 320],
 };
 
 let ctx: AudioContext | null = null;

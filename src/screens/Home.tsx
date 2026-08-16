@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IconButton } from '../components/IconButton.tsx';
+import { Logo } from '../components/Logo.tsx';
 import { TopBar } from '../components/TopBar.tsx';
 import { InfoIcon, SettingsIcon } from '../components/Icons.tsx';
 import { navigate } from '../lib/router.ts';
@@ -34,8 +35,11 @@ export function Home(): ReactNode {
       />
 
       <div className="home__mark">
-        <h1 className="home__wordmark">BBS</h1>
-        <p className="home__sub">Body by Science</p>
+        <Logo className="home__logo" />
+        <div className="home__name">
+          <h1 className="home__wordmark">BBS</h1>
+          <p className="home__sub">Body by Science</p>
+        </div>
       </div>
 
       <div className="home__actions">

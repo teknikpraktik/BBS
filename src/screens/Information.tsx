@@ -60,6 +60,25 @@ export function Information(): ReactNode {
           </p>
         </Section>
 
+        <Section title="Time Under Load">
+          <p>
+            The goal of a set is time under load, not repetitions. How many reps you get through in
+            the 90 seconds is not the measure of the set and is not recorded anywhere in this app.
+            The only thing that counts is how long the muscle stays loaded.
+          </p>
+          <p>
+            Each repetition is therefore performed very slowly — roughly 5 to 10 seconds in each
+            direction — with no pause and no lockout at either end of the movement. At that speed a
+            full 90 second set is only a handful of repetitions. That is expected, and it is not a
+            sign that the weight is too heavy.
+          </p>
+          <p>
+            Moving faster to fit more repetitions into the set works against it. Speed brings in
+            momentum, and momentum unloads the muscle at exactly the point the set is meant to load
+            it. Being quick is not the objective here; staying under load is.
+          </p>
+        </Section>
+
         <Section title="Exercise Order">
           <p>The standard sequence is:</p>
           <ol>
@@ -92,9 +111,9 @@ export function Information(): ReactNode {
 
         <Section title="Controlled Movement">
           <p>
-            The protocol is performed with slow, deliberate repetitions. Moving smoothly in both
-            directions, without pausing at the ends of the movement, keeps the muscles loaded
-            throughout the set.
+            At the 5 to 10 second cadence described above, the movement has to be smooth in both
+            directions to stay controlled. Changing direction gradually, rather than reversing at a
+            stop, keeps the muscle loaded across the whole range.
           </p>
           <p>
             Momentum, jerking, and bouncing the weight shift the load away from the muscle and onto
