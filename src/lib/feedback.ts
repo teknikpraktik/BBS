@@ -18,21 +18,23 @@ interface Tone {
 }
 
 /**
- * Muted and low for everything that happens mid-set, and deliberately not muted
- * for the end of one. The last set of a workout is reached in a state where you
- * are not watching the screen, so the completion cue is three bright triangle
- * tones — the loudest thing the app does, and nothing else in it sounds close.
+ * The set announces itself twice and no more: three bright blips for the last
+ * three seconds, and a low, dull note when the clock reaches zero. Starting a
+ * set makes no sound at all — you pressed the button, you already know.
  */
 const CUES: Record<Cue, Tone[]> = {
-  start: [{ freq: 320, duration: 0.11, gain: 0.5 }],
+  /* Silent by design. The vibration below still fires, which is enough
+     acknowledgement for a button you are looking at as you press it. */
+  start: [],
   pause: [{ freq: 200, duration: 0.09, gain: 0.4 }],
   resume: [{ freq: 280, duration: 0.09, gain: 0.4 }],
-  // The last three seconds are already a warning; make them audible as one.
   countdown: [{ freq: 660, duration: 0.1, gain: 0.6, type: 'triangle' }],
+  /* Low sines under a low-pass read as a soft knock rather than a beep: the
+     end of the set, said quietly. It carries against the bright countdown by
+     being unlike it, not by being louder. */
   complete: [
-    { freq: 880, duration: 0.19, gain: 0.95, type: 'triangle' },
-    { freq: 880, duration: 0.19, gain: 0.95, delay: 0.24, type: 'triangle' },
-    { freq: 587, duration: 0.75, gain: 1, delay: 0.48, type: 'triangle' },
+    { freq: 196, duration: 0.2, gain: 0.38 },
+    { freq: 131, duration: 0.55, gain: 0.34, delay: 0.18 },
   ],
 };
 
@@ -41,7 +43,8 @@ const VIBRATIONS: Record<Cue, number | number[]> = {
   pause: 15,
   resume: 15,
   countdown: 30,
-  complete: [140, 90, 140, 90, 320],
+  // The haptics stay definite: they are the channel a quiet cue cannot use.
+  complete: [90, 70, 200],
 };
 
 let ctx: AudioContext | null = null;

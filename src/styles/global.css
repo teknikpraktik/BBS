@@ -591,7 +591,8 @@ ol {
 }
 
 /*
- * The platform's display face, set heavy and tight. Tabular figures give the
+ * The platform's display face at regular weight — the digits are already huge,
+ * and weight on top of that size reads as shouting. Tabular figures give the
  * one thing a monospaced clock was there for — digits that do not change width
  * as they count — without the typewriter shapes that come with it. No web
  * font: this app has to start on a dead connection.
@@ -601,8 +602,8 @@ ol {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
   font-size: var(--fs-clock);
-  font-weight: 600;
-  letter-spacing: -0.045em;
+  font-weight: 400;
+  letter-spacing: -0.035em;
   line-height: 1;
   color: var(--ink);
 }

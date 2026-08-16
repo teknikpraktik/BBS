@@ -61,9 +61,10 @@ export function Settings(): ReactNode {
           onClick={() => {
             const next = !sound;
             setSound(next);
-            // Turning it on plays the cue it controls, so the volume can be
-            // checked here rather than mid-set.
-            if (next) playCue('start', { sound: true, haptics: false });
+            // Turning it on plays the countdown blip, so the volume can be
+            // checked here rather than mid-set. Starting a set is silent, so
+            // that cue would demonstrate nothing.
+            if (next) playCue('countdown', { sound: true, haptics: false });
           }}
         />
       </div>
