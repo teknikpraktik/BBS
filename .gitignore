@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -141,3 +141,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# --- BBS ---
+# vite-plugin-pwa dev service worker output
+dev-dist/
+# Vercel local config
+.vercel/
+# Reference sync backend storage
+server/data.json

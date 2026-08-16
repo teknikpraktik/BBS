@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <style>
+    .digits { stroke: #17181b; }
+    .track { stroke: rgba(23,24,27,0.2); }
+    @media (prefers-color-scheme: dark) {
+      .digits { stroke: #ececee; }
+      .track { stroke: rgba(236,236,238,0.24); }
+    }
+  </style>
+  <g fill="none" stroke-linecap="round">
+    <circle class="track" cx="256" cy="256" r="210" stroke-width="13"/>
+    <path d="M256 46 A210 210 0 0 1 466 256" stroke="#86b3a8" stroke-width="13"/>
+    <g class="digits" stroke-width="26" stroke-linejoin="round">
+      <circle cx="196" cy="218" r="37"/>
+      <path d="M233 218 C233 282 222 316 180 333"/>
+      <ellipse cx="316" cy="256" rx="40" ry="75"/>
+    </g>
+  </g>
+</svg>

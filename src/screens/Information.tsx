@@ -1,0 +1,148 @@
+import type { ReactNode } from 'react';
+import { IconButton } from '../components/IconButton.tsx';
+import { BackIcon } from '../components/Icons.tsx';
+import { EXERCISES } from '../lib/exercises.ts';
+import { goBack } from '../lib/router.ts';
+
+function Section({ title, children }: { title: string; children: ReactNode }): ReactNode {
+  return (
+    <section className="stack" style={{ gap: 8 }}>
+      <h2 className="section-title">{title}</h2>
+      <div className="prose muted">{children}</div>
+    </section>
+  );
+}
+
+/**
+ * General information about the protocol the app implements. It explains how
+ * the app works; it does not give individual medical or training advice.
+ */
+export function Information(): ReactNode {
+  return (
+    <div className="screen screen--scroll">
+      <header className="topbar">
+        <IconButton label="Back" onClick={() => goBack('')}>
+          <BackIcon />
+        </IconButton>
+      </header>
+
+      <h1 className="title" style={{ marginBottom: 24 }}>
+        Information
+      </h1>
+
+      <div className="stack" style={{ gap: 26, paddingBottom: 24 }}>
+        <Section title="The Big Five">
+          <p>
+            BBS is built around five compound machine exercises that together cover the major
+            movement patterns of the body: a horizontal pull, a horizontal push, a vertical pull, a
+            vertical push, and a leg movement.
+          </p>
+          <ol style={{ marginTop: 10 }}>
+            {EXERCISES.map((e) => (
+              <li key={e.id}>{e.name}</li>
+            ))}
+          </ol>
+        </Section>
+
+        <Section title="How a Workout Works">
+          <p>
+            A workout is five exercises, one working set each. Every set lasts up to 90 seconds and
+            the app times it for you.
+          </p>
+          <p>
+            Set the machine to the weight you intend to use, match it on screen, and press Start.
+            When the clock reaches 00:00 the set is over, the weight shown at that moment is
+            recorded, and the exercise is marked as completed for the workout.
+          </p>
+          <p>
+            There is no rest timer between exercises. The next set begins only when you start it.
+          </p>
+        </Section>
+
+        <Section title="Exercise Order">
+          <p>The standard sequence is:</p>
+          <ol style={{ marginTop: 10 }}>
+            {EXERCISES.map((e) => (
+              <li key={e.id}>{e.name}</li>
+            ))}
+          </ol>
+          <p style={{ marginTop: 10 }}>
+            The app highlights the next exercise in this order, but you are not bound to it. If a
+            machine is occupied, pick any exercise you have not done yet and come back to the others
+            later. The workout is complete when all five are done, in whatever order you took them.
+          </p>
+        </Section>
+
+        <Section title="Weight Selection">
+          <p>
+            You choose the weight yourself, in 2.5 kg steps. The app never suggests a weight and
+            never tells you when to change one.
+          </p>
+          <p>
+            The first time you use BBS every exercise starts at 0 kg, so you will need to set your
+            own starting weights. After a completed workout, each exercise starts at the weight you
+            finished it with last time.
+          </p>
+          <p>
+            The weight can be adjusted before a set and while a set is running. Only the value shown
+            when the clock reaches 00:00 is saved.
+          </p>
+        </Section>
+
+        <Section title="Controlled Movement">
+          <p>
+            The protocol is performed with slow, deliberate repetitions. Moving smoothly in both
+            directions, without pausing at the ends of the movement, keeps the muscles loaded
+            throughout the set.
+          </p>
+          <p>
+            Momentum, jerking, and bouncing the weight shift the load away from the muscle and onto
+            the joints, which is the opposite of what the set is meant to do.
+          </p>
+        </Section>
+
+        <Section title="Pause">
+          <p>
+            A set can be paused at any time, for example to change the weight or adjust the machine.
+            The clock freezes where it is and continues from the same point when you press Resume.
+          </p>
+          <p>
+            If the app is sent to the background during a set, the clock pauses automatically. You
+            have to press Resume to continue.
+          </p>
+        </Section>
+
+        <Section title="Safety">
+          <p>
+            Stop the set if you feel pain, chest discomfort, dizziness, shortness of breath, or any
+            other symptom that concerns you. Do not attempt to finish the 90 seconds through such a
+            symptom.
+          </p>
+          <p>
+            Make sure the machine is adjusted to you and that the weight is one you can control for
+            the whole set. Breathe continuously; do not hold your breath under load.
+          </p>
+          <p>
+            This app records what you did. It is not a medical device and does not provide medical
+            or personal training advice. If you have a health condition, are pregnant, are returning
+            from injury, or are new to resistance training, consult a qualified professional before
+            starting.
+          </p>
+        </Section>
+
+        <Section title="About">
+          <p>
+            Body by Science describes a low-frequency, high-intensity approach to resistance
+            training: a small number of compound exercises, performed slowly, taken to a point of
+            deep fatigue within a single set, with substantial recovery time between workouts.
+          </p>
+          <p>
+            BBS implements only the timing and record keeping of that idea. It records what you
+            lifted and shows how it changes over time. It does not evaluate your performance,
+            recommend weights, or tell you when to train.
+          </p>
+        </Section>
+      </div>
+    </div>
+  );
+}
