@@ -19,6 +19,8 @@ import {
   putWorkout,
 } from '../lib/db.ts';
 import {
+  COUNTDOWN_DURATION_MS,
+  COUNTDOWN_SECONDS,
   EXERCISES,
   SET_DURATION_MS,
   WEIGHT_STEP_KG,
@@ -41,6 +43,8 @@ interface WorkoutValue {
   active: ActiveWorkout | null;
   phase: WorkoutPhase | null;
   remainingMs: number;
+  /** The whole number on screen during the lead-in: 5 down to 1. */
+  countdownSeconds: number;
   startWorkout: () => Promise<void>;
   selectExercise: (id: ExerciseId) => void;
   showOverview: () => void;
@@ -48,11 +52,18 @@ interface WorkoutValue {
   startSet: () => void;
   pauseSet: () => void;
   resumeSet: () => void;
+  restartSet: () => void;
   endWorkout: () => Promise<void>;
   finishWorkout: () => Promise<void>;
 }
 
 const WorkoutContext = createContext<WorkoutValue | null>(null);
+
+/** 5 while more than four seconds remain, 1 through the last one. Never 0: the
+ *  screen goes straight from 1 to the running clock. */
+function countdownAt(deadline: number): number {
+  return Math.max(1, Math.min(COUNTDOWN_SECONDS, Math.ceil((deadline - Date.now()) / 1000)));
+}
 
 function phaseOf(active: ActiveWorkout | null): WorkoutPhase | null {
   if (!active) return null;
@@ -64,6 +75,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
   const { sound, haptics } = useSettings();
   const [active, setActive] = useState<ActiveWorkout | null>(null);
   const [remainingMs, setRemainingMs] = useState(SET_DURATION_MS);
+  const [countdownSeconds, setCountdownSeconds] = useState(COUNTDOWN_SECONDS);
   const [loaded, setLoaded] = useState(false);
 
   // Cue options are read at fire time so a settings change takes effect mid-set.
@@ -71,16 +83,36 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
   cueOptions.current = { sound, haptics };
   const cue = useCallback((name: Cue) => playCue(name, cueOptions.current), []);
 
+  /**
+   * The workout as of the last write, updated synchronously.
+   *
+   * An interval callback that was already queued when the state changed still
+   * runs, holding the workout it was started for. Pausing a set — which is what
+   * the Restart question does — must not be able to have a clock tick from the
+   * moment before it complete the set anyway, so both tickers check here that
+   * they are still ticking for the workout that is actually current.
+   */
+  const live = useRef<ActiveWorkout | null>(null);
+
   /** Single write path: state and IndexedDB never drift apart. */
   const commit = useCallback((next: ActiveWorkout | null) => {
+    live.current = next;
     setActive(next);
     if (next) {
+      // The lead-in leaves the set clock alone: during "countdown" the set is
+      // still showing its full, untouched length.
       setRemainingMs(next.timer_state === 'running' && next.running_until
         ? Math.max(0, next.running_until - Date.now())
         : next.timer_remaining_ms);
+      setCountdownSeconds(
+        next.timer_state === 'countdown' && next.running_until
+          ? countdownAt(next.running_until)
+          : COUNTDOWN_SECONDS,
+      );
       void putActiveWorkout(next);
     } else {
       setRemainingMs(SET_DURATION_MS);
+      setCountdownSeconds(COUNTDOWN_SECONDS);
       void clearActiveWorkout();
     }
   }, []);
@@ -118,6 +150,19 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
         setLoaded(true);
         return;
       }
+      if (stored.timer_state === 'countdown') {
+        // Nothing was worked during the lead-in, so there is nothing to
+        // restore and nothing to lose: the exercise goes back to Ready and the
+        // next Start counts down again.
+        commit({
+          ...stored,
+          timer_state: 'ready',
+          timer_remaining_ms: SET_DURATION_MS,
+          running_until: null,
+        });
+        setLoaded(true);
+        return;
+      }
       if (stored.timer_state === 'running' && stored.running_until) {
         const left = stored.running_until - Date.now();
         if (left <= 0) {
@@ -133,6 +178,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
         setLoaded(true);
         return;
       }
+      live.current = stored;
       setActive(stored);
       setRemainingMs(stored.timer_remaining_ms);
       setLoaded(true);
@@ -150,12 +196,16 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
 
   useEffect(() => {
     if (!active || active.timer_state !== 'running' || active.running_until === null) return;
-    const deadline = active.running_until;
+    const workout = active;
+    const deadline: number = active.running_until;
     // Wall-clock driven, so a throttled timer callback can never make a set
     // longer than 90 seconds.
     let lastSecond = Math.ceil(Math.max(0, deadline - Date.now()) / 1000);
 
     const tick = (): void => {
+      // The set was paused or restarted under this interval. Nothing it could
+      // do now would be about the set that is actually on screen.
+      if (live.current !== workout) return;
       const left = deadline - Date.now();
       setRemainingMs(Math.max(0, left));
       const second = Math.max(0, Math.ceil(left / 1000));
@@ -163,7 +213,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
         if (second === 3 || second === 2 || second === 1) cue('countdown');
         lastSecond = second;
       }
-      if (left <= 0) completeSet(active, { announce: true });
+      if (left <= 0) completeSet(workout, { announce: true });
     };
 
     const handle = window.setInterval(tick, 100);
@@ -171,19 +221,68 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
     return () => window.clearInterval(handle);
   }, [active, cue, completeSet]);
 
+  /**
+   * The lead-in. Wall-clock driven like the set clock, and its own state, so
+   * none of these five seconds can reach the set: the set clock only starts
+   * once this hands over, and it starts from the length already on the
+   * workout rather than from a duration repeated here.
+   */
+  useEffect(() => {
+    if (!active || active.timer_state !== 'countdown' || active.running_until === null) return;
+    const workout = active;
+    const deadline: number = active.running_until;
+    let handedOver = false;
+
+    const tick = (): void => {
+      // Same staleness guard as the set clock: a cancelled lead-in must not
+      // hand over to a set from an interval that has already been replaced.
+      if (handedOver || live.current !== workout) return;
+      if (deadline - Date.now() > 0) {
+        setCountdownSeconds(countdownAt(deadline));
+        return;
+      }
+      handedOver = true;
+      // The pip is the hand-off, and the only cue the user is not looking at
+      // the screen for.
+      cue('go');
+      commit({
+        ...workout,
+        timer_state: 'running',
+        running_until: Date.now() + workout.timer_remaining_ms,
+      });
+    };
+
+    const handle = window.setInterval(tick, 100);
+    tick();
+    return () => window.clearInterval(handle);
+  }, [active, commit, cue]);
+
   /* ---------------------------------------------------------------------- */
   /* Foreground / wake lock                                                  */
   /* ---------------------------------------------------------------------- */
 
   useEffect(() => {
-    if (!active || active.timer_state !== 'running' || active.running_until === null) return;
-    const deadline = active.running_until;
+    if (!active || active.running_until === null) return;
+    if (active.timer_state !== 'running' && active.timer_state !== 'countdown') return;
+    const workout = active;
+    const deadline: number = active.running_until;
     const onVisibility = (): void => {
       if (document.visibilityState !== 'hidden') return;
+      if (workout.timer_state === 'countdown') {
+        // A lead-in that nobody is watching has nothing to count. It is
+        // dropped rather than paused: the user was not at the machine yet.
+        commit({
+          ...workout,
+          timer_state: 'ready',
+          timer_remaining_ms: SET_DURATION_MS,
+          running_until: null,
+        });
+        return;
+      }
       // Leaving the foreground pauses the set. Silently — a cue nobody is
       // there to hear is just noise.
       commit({
-        ...active,
+        ...workout,
         timer_state: 'paused',
         timer_remaining_ms: Math.max(0, deadline - Date.now()),
         running_until: null,
@@ -258,15 +357,20 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
     [active, commit],
   );
 
+  /**
+   * Start opens the five second lead-in, not the set. timer_remaining_ms is
+   * set to the full set length here and read back when the lead-in hands over,
+   * so the set length lives in one place and the lead-in cannot eat into it.
+   */
   const startSet = useCallback(() => {
     if (!active || active.timer_state !== 'ready') return;
     unlockAudio();
     cue('start');
     commit({
       ...active,
-      timer_state: 'running',
+      timer_state: 'countdown',
       timer_remaining_ms: SET_DURATION_MS,
-      running_until: Date.now() + SET_DURATION_MS,
+      running_until: Date.now() + COUNTDOWN_DURATION_MS,
     });
   }, [active, commit, cue]);
 
@@ -291,6 +395,28 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       running_until: Date.now() + active.timer_remaining_ms,
     });
   }, [active, commit, cue]);
+
+  /**
+   * Throws the current attempt away and puts the same exercise back at Ready.
+   *
+   * The line against Pause is the whole point: Pause keeps the attempt and
+   * comes back to it, Restart ends it. What goes: the clock, the pause, the
+   * lead-in, and every second worked so far. What stays: the exercise, its
+   * weight, and the four other exercises. Nothing is written to History —
+   * completed_exercises is not touched, so an abandoned attempt cannot become
+   * a completed set, and the next Start counts down from five again.
+   */
+  const restartSet = useCallback(() => {
+    if (!active?.current_exercise) return;
+    // Ready is already the restarted state; re-committing would only churn.
+    if (active.timer_state === 'ready') return;
+    commit({
+      ...active,
+      timer_state: 'ready',
+      timer_remaining_ms: SET_DURATION_MS,
+      running_until: null,
+    });
+  }, [active, commit]);
 
   /** Discards everything about the workout. Nothing reaches History. */
   const endWorkout = useCallback(async () => {
@@ -325,6 +451,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       active,
       phase: phaseOf(active),
       remainingMs,
+      countdownSeconds,
       startWorkout,
       selectExercise,
       showOverview,
@@ -332,6 +459,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       startSet,
       pauseSet,
       resumeSet,
+      restartSet,
       endWorkout,
       finishWorkout,
     }),
@@ -339,6 +467,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       loaded,
       active,
       remainingMs,
+      countdownSeconds,
       startWorkout,
       selectExercise,
       showOverview,
@@ -346,6 +475,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       startSet,
       pauseSet,
       resumeSet,
+      restartSet,
       endWorkout,
       finishWorkout,
     ],

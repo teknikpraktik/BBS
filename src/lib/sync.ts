@@ -72,6 +72,25 @@ export async function syncNow(): Promise<void> {
   }
 }
 
+/**
+ * Tells the backend about a workout deleted here. Best effort and nothing more:
+ * unlike a push there is no local record left to retry from, so a deletion made
+ * offline is simply not mirrored, and the row upstream is left behind. That is
+ * harmless today — nothing is ever read back from the backend — but it is the
+ * reason deletion is described as local.
+ */
+export async function deleteRemoteWorkout(workoutId: string): Promise<void> {
+  if (!syncEnabled()) return;
+  try {
+    await fetch(`${ENDPOINT}/workouts/${encodeURIComponent(workoutId)}`, {
+      method: 'DELETE',
+      keepalive: true,
+    });
+  } catch {
+    /* Offline or unreachable. The local delete already stands. */
+  }
+}
+
 /** Retries whenever the network comes back or the app returns to the foreground. */
 export function startSyncWatcher(): () => void {
   if (!syncEnabled()) return () => undefined;

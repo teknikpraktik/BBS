@@ -608,6 +608,37 @@ ol {
   color: var(--ink);
 }
 
+/*
+ * The lead-in. One digit, set larger than the clock because it has to be read
+ * from wherever you are standing as you settle into the machine — but in the
+ * same face, the same colour and the same place, so the handover to the clock
+ * is a change of number rather than a change of screen. The ring stays full
+ * underneath: nothing has been spent yet.
+ */
+.timer__value--count {
+  font-size: clamp(84px, 30vw, 132px);
+  letter-spacing: -0.05em;
+  color: var(--ink);
+  animation: count-beat 1s steps(1, end) infinite;
+}
+
+@keyframes count-beat {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timer__value--count {
+    animation: none;
+  }
+}
+
 .timer--paused .timer__value {
   color: var(--ink-muted);
 }
@@ -677,6 +708,27 @@ ol {
   color: var(--ink-muted);
   margin-left: 0.3em;
   letter-spacing: 0;
+}
+
+/*
+ * The same control, sized for a list. Correcting a past workout stacks five of
+ * these, so the steppers come down to a tap target rather than a thumb-sized
+ * circle and the number sits between them at list weight.
+ */
+.weight--compact {
+  grid-template-columns: 44px minmax(64px, auto) 44px;
+  gap: 6px;
+  padding: 0;
+}
+
+.weight--compact .weight__step {
+  width: 44px;
+  height: 44px;
+  font-size: var(--fs-label);
+}
+
+.weight--compact .weight__value {
+  font-size: var(--fs-numeric);
 }
 
 .exercise__actions {
@@ -808,6 +860,12 @@ ol {
   gap: 16px;
   padding: 17px 2px;
   border-bottom: 1px solid var(--line);
+}
+
+/* The editable rows carry a control, not a baseline-aligned number. */
+.summary__item--edit {
+  align-items: center;
+  padding: 9px 2px;
 }
 
 .summary__name {

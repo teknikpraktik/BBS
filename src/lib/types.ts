@@ -31,7 +31,12 @@ export interface CompletedWorkout {
   sync_status: SyncStatus;
 }
 
-export type TimerState = 'ready' | 'running' | 'paused' | 'completed';
+/**
+ * "countdown" is the five second lead-in between pressing Start and the set
+ * clock running. It is a timer state of its own so that the set clock cannot
+ * be running during it, and so a reload can tell the two apart.
+ */
+export type TimerState = 'ready' | 'countdown' | 'running' | 'paused' | 'completed';
 
 /**
  * A workout in progress. Temporary by definition: it is deleted on End Workout
@@ -45,6 +50,10 @@ export interface ActiveWorkout {
   temporary_weights: Record<ExerciseId, number>;
   timer_remaining_ms: number;
   timer_state: TimerState;
-  /** Wall-clock deadline while running; used to survive a backgrounded tab. */
+  /**
+   * Wall-clock deadline for whichever clock is running: the lead-in countdown
+   * while the state is "countdown", the set itself while it is "running". Used
+   * so a throttled or backgrounded tab cannot stretch either one.
+   */
   running_until: number | null;
 }

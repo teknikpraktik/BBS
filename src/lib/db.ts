@@ -4,7 +4,7 @@
  */
 
 import type { ActiveWorkout, CompletedWorkout, CurrentWeight, Installation } from './types.ts';
-import { EXERCISES, type ExerciseId } from './exercises.ts';
+import { EXERCISES, clampWeight, exercise, type ExerciseId } from './exercises.ts';
 
 const DB_NAME = 'bbs';
 const DB_VERSION = 1;
@@ -170,6 +170,66 @@ export function putWorkout(workout: CompletedWorkout): Promise<void> {
 export async function getPendingWorkouts(): Promise<CompletedWorkout[]> {
   const all = await getWorkouts();
   return all.filter((w) => w.sync_status === 'pending');
+}
+
+/** Removes a completed workout for good. Local only; see sync.ts. */
+export async function deleteWorkout(workoutId: string): Promise<void> {
+  await tx(STORE_WORKOUTS, 'readwrite', ([store]) => {
+    requestOf(store);
+    return store.delete(workoutId) as unknown as IDBRequest<void>;
+  });
+  // Deleting the newest workout hands the starting weights back to the one
+  // before it, rather than leaving them pointing at a workout that is gone.
+  await refreshCurrentWeightsFromHistory();
+}
+
+/**
+ * Corrects one weight on a workout that is already saved.
+ *
+ * This is an edit of the existing row and nothing else: the workout_id, the
+ * date, the other four weights and every other field are carried over
+ * untouched, so no second workout and no second log can come out of it. The
+ * record goes back to "pending" because the mirror upstream now disagrees with
+ * it; the push is an upsert on workout_id, so the correction replaces the row
+ * there rather than adding one.
+ *
+ * @returns the updated record, or undefined if the workout is gone.
+ */
+export async function setWorkoutWeight(
+  workoutId: string,
+  exerciseId: ExerciseId,
+  kg: number,
+): Promise<CompletedWorkout | undefined> {
+  const existing = await getWorkout(workoutId);
+  if (!existing) return undefined;
+  const { column } = exercise(exerciseId);
+  const value = clampWeight(exerciseId, kg);
+  if (existing[column] === value) return existing;
+  const updated: CompletedWorkout = { ...existing, [column]: value, sync_status: 'pending' };
+  await putWorkout(updated);
+  await refreshCurrentWeightsFromHistory();
+  return updated;
+}
+
+/**
+ * Re-derives the starting weights from history.
+ *
+ * The rule the app has always followed is that next time starts where last
+ * time finished, so current_weights is a cache of the newest completed
+ * workout. Correcting or deleting that workout has to move the cache with it,
+ * or the next workout would open on a number the user has just said was wrong.
+ * Older workouts are not consulted: only the newest one has ever decided this.
+ *
+ * With no workouts left there is nothing to derive from, and the stored
+ * weights are left alone rather than reset to zero — a starting weight is
+ * still the best guess available, and losing it helps nobody.
+ */
+export async function refreshCurrentWeightsFromHistory(): Promise<void> {
+  const [newest] = await getWorkouts();
+  if (!newest) return;
+  const weights = {} as Record<ExerciseId, number>;
+  for (const e of EXERCISES) weights[e.id] = newest[e.column];
+  await putCurrentWeights(weights);
 }
 
 /* -------------------------------------------------------------------------- */

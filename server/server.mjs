@@ -3,7 +3,7 @@
  *
  * Zero dependencies, JSON file storage. It exists to define and demonstrate the
  * contract the client expects; swap it for any implementation that honours the
- * same two routes.
+ * same routes.
  *
  *   PUT /workouts
  *     Body: a completed workout without sync_status. Upserts on workout_id, so
@@ -12,6 +12,11 @@
  *
  *   GET /workouts?installation_id=<id>
  *     -> 200 { workouts: [...] }
+ *
+ *   DELETE /workouts/<workout_id>
+ *     Removes a workout the client has deleted locally. Idempotent: deleting
+ *     something that is not there is success.
+ *     -> 200 { ok: true, deleted: boolean }
  *
  * There is no authentication and no account. A workout is associated with an
  * anonymous installation_id minted on the device, which is the whole identity
@@ -66,7 +71,7 @@ function send(res, status, body) {
     'Content-Length': Buffer.byteLength(payload),
     'Cache-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   });
   res.end(payload);
@@ -149,6 +154,15 @@ const server = createServer(async (req, res) => {
     workouts.set(parsed.workout_id, record);
     await persist();
     return send(res, 200, { ok: true, created });
+  }
+
+  if (req.method === 'DELETE' && url.pathname.startsWith('/workouts/')) {
+    const id = decodeURIComponent(url.pathname.slice('/workouts/'.length));
+    // Idempotent: a retried delete, or one for a workout that never synced,
+    // is success rather than a 404 the client would have to interpret.
+    const deleted = workouts.delete(id);
+    if (deleted) await persist();
+    return send(res, 200, { ok: true, deleted });
   }
 
   send(res, 404, { error: 'Not found' });

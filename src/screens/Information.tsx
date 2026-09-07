@@ -52,6 +52,11 @@ export function Information(): ReactNode {
           </p>
           <p>
             Set the machine to the weight you intend to use, match it on screen, and press Start.
+            Start does not start the clock: it counts down from five, and a single pip tells you the
+            set has begun. Those five seconds are for getting the stack moving and settling into
+            position, and none of them count towards the set.
+          </p>
+          <p>
             When the clock reaches 00:00 the set is over, the weight shown at that moment is
             recorded, and the exercise is marked as completed for the workout.
           </p>
@@ -105,7 +110,13 @@ export function Information(): ReactNode {
           </p>
           <p>
             The weight can be adjusted before a set and while a set is running. Only the value shown
-            when the clock reaches 00:00 is saved.
+            when the clock reaches 00:00 is saved. Each exercise carries its own weight through the
+            workout, so you can move between them and set all five independently.
+          </p>
+          <p>
+            A weight that was recorded wrong can be corrected afterwards. Open the workout in
+            History and use the same steppers there; the correction changes that workout only, and
+            correcting your most recent workout also moves the starting weight for the next one.
           </p>
         </Section>
 
@@ -129,6 +140,19 @@ export function Information(): ReactNode {
           <p>
             If the app is sent to the background during a set, the clock pauses automatically. You
             have to press Resume to continue.
+          </p>
+        </Section>
+
+        <Section title="Restart">
+          <p>
+            Restart exercise throws the current set away and puts the same exercise back at the
+            start, at the same weight. Use it when the set went wrong rather than when you need a
+            break — a paused set is continued, a restarted one is gone, and the next Start counts
+            down from five again.
+          </p>
+          <p>
+            Nothing is recorded for a set that was restarted. It does not appear in your history and
+            it does not mark the exercise as done.
           </p>
         </Section>
 

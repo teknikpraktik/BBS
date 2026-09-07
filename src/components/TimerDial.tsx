@@ -35,6 +35,7 @@ const SEGMENTS = Array.from({ length: ARCS }, (_, i) => {
 
 const STATE_LABEL: Record<TimerState, string> = {
   ready: 'Ready',
+  countdown: 'Starting',
   running: 'Working set',
   paused: 'Paused',
   completed: 'Complete',
@@ -43,6 +44,8 @@ const STATE_LABEL: Record<TimerState, string> = {
 interface Props {
   remainingMs: number;
   state: TimerState;
+  /** The whole number shown during the lead-in. Ignored in every other state. */
+  countdownSeconds?: number;
 }
 
 /**
@@ -50,12 +53,23 @@ interface Props {
  * metres away, and the state is spelled out in words as well as shown by the
  * ring, so colour is never the only signal.
  */
-export function TimerDial({ remainingMs, state }: Props): ReactNode {
+export function TimerDial({ remainingMs, state, countdownSeconds = 0 }: Props): ReactNode {
+  // The lead-in leaves the ring full: nothing has been spent yet, and a ring
+  // that drained during it would say the set had started when it had not.
   const fraction = Math.max(0, Math.min(1, remainingMs / SET_DURATION_MS));
+  const counting = state === 'countdown';
   const clock = formatClock(remainingMs);
 
   return (
-    <div className={`timer ${state === 'paused' ? 'timer--paused' : ''}`}>
+    <div
+      className={[
+        'timer',
+        state === 'paused' ? 'timer--paused' : '',
+        counting ? 'timer--countdown' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="timer__dial">
         <svg className="timer__ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
           <defs>
@@ -89,9 +103,21 @@ export function TimerDial({ remainingMs, state }: Props): ReactNode {
             ))}
           </g>
         </svg>
-        <div className="timer__value" role="timer" aria-label={`${clock} remaining`}>
-          {clock}
-        </div>
+        {counting ? (
+          // One number, as large as the dial will take. Same face, same ring,
+          // same place on screen as the clock it is about to become.
+          <div
+            className="timer__value timer__value--count"
+            role="timer"
+            aria-label={`Starting in ${countdownSeconds}`}
+          >
+            {countdownSeconds}
+          </div>
+        ) : (
+          <div className="timer__value" role="timer" aria-label={`${clock} remaining`}>
+            {clock}
+          </div>
+        )}
       </div>
       {/*
         The state used to be spelled out under the ring. It said nothing the

@@ -44,6 +44,15 @@ export function exercise(id: ExerciseId): Exercise {
 /** Every set is exactly 90 seconds. */
 export const SET_DURATION_MS = 90_000;
 
+/**
+ * The lead-in before every set. Start does not start the clock: it gives you
+ * five seconds to get the stack moving and settle into position, so the set
+ * itself is time actually spent under load. Nothing is recorded during it, and
+ * it is never part of SET_DURATION_MS.
+ */
+export const COUNTDOWN_SECONDS = 5;
+export const COUNTDOWN_DURATION_MS = COUNTDOWN_SECONDS * 1000;
+
 /** Weight moves in 2.5 kg steps only. */
 export const WEIGHT_STEP_KG = 2.5;
 export const MIN_WEIGHT_KG = 0;

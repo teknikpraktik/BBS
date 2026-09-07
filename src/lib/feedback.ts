@@ -3,7 +3,7 @@
  * the only channel for information — the screen always shows the same state.
  */
 
-export type Cue = 'start' | 'pause' | 'resume' | 'countdown' | 'complete';
+export type Cue = 'start' | 'go' | 'pause' | 'resume' | 'countdown' | 'complete';
 
 interface Tone {
   /** Hz */
@@ -18,14 +18,21 @@ interface Tone {
 }
 
 /**
- * The set announces itself twice and no more: three bright blips for the last
- * three seconds, and a low, dull note when the clock reaches zero. Starting a
- * set makes no sound at all — you pressed the button, you already know.
+ * The set announces itself three times and no more: one pip when the lead-in
+ * ends and the clock actually starts, three bright blips for the last three
+ * seconds, and a low, dull note when it reaches zero. Pressing Start makes no
+ * sound at all — you pressed the button, you already know; the pip five
+ * seconds later is the one that tells you something you cannot see.
  */
 const CUES: Record<Cue, Tone[]> = {
   /* Silent by design. The vibration below still fires, which is enough
      acknowledgement for a button you are looking at as you press it. */
   start: [],
+  /* The one pip in the app that means "now". It lands at the end of the
+     lead-in, when the user is looking at the machine rather than the screen,
+     so it is the only cue that has to carry on its own — bright, short, and
+     unlike both the countdown blip and the note at zero. */
+  go: [{ freq: 880, duration: 0.14, gain: 0.7, type: 'triangle' }],
   pause: [{ freq: 200, duration: 0.09, gain: 0.4 }],
   resume: [{ freq: 280, duration: 0.09, gain: 0.4 }],
   countdown: [{ freq: 660, duration: 0.1, gain: 0.6, type: 'triangle' }],
@@ -40,6 +47,7 @@ const CUES: Record<Cue, Tone[]> = {
 
 const VIBRATIONS: Record<Cue, number | number[]> = {
   start: 25,
+  go: 60,
   pause: 15,
   resume: 15,
   countdown: 30,
