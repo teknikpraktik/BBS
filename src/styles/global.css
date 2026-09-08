@@ -779,11 +779,27 @@ ol {
   box-shadow: inset 0 0 0 1px var(--ink);
 }
 
+/* Done, but not finished with: the row still corrects the weight, so it keeps
+   the pointer and the press feedback the others have and is set back only in
+   colour and fill. */
 .row--done {
-  cursor: default;
   background: transparent;
   border-color: var(--line);
   color: var(--ink-faint);
+}
+
+/* The chevron that says a completed row opens something. */
+.row__go {
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  flex: none;
+  margin-right: -4px;
+}
+
+.row__go svg {
+  width: 18px;
+  height: 18px;
 }
 
 .row__mark {
@@ -866,6 +882,42 @@ ol {
 .summary__item--edit {
   align-items: center;
   padding: 9px 2px;
+}
+
+/* A summary line that opens its weight. It is a button, so it says so with the
+   pointer, the press feedback and a chevron — and with nothing else: the list
+   has to stay a list of five numbers to read at a glance. */
+.summary__item--action {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: opacity 140ms ease;
+}
+
+.summary__item--action:active {
+  opacity: 0.6;
+}
+
+.summary__go {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  color: var(--ink-faint);
+  flex: none;
+  margin-right: -4px;
+}
+
+.summary__go svg {
+  width: 18px;
+  height: 18px;
 }
 
 .summary__name {

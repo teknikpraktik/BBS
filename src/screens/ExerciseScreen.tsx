@@ -12,7 +12,8 @@ import type { ActiveWorkout } from '../lib/types.ts';
 
 interface Props {
   active: ActiveWorkout;
-  onRequestEnd: () => void;
+  /** Confirmed Exit exercise: closes this exercise and leaves the workout. */
+  onExit: () => void;
 }
 
 /**
@@ -27,7 +28,7 @@ interface Props {
  *   running    Pause                 / Restart exercise
  *   paused     Resume                / Restart exercise
  */
-export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
+export function ExerciseScreen({ active, onExit }: Props): ReactNode {
   const {
     remainingMs,
     countdownSeconds,
@@ -38,7 +39,8 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
     restartSet,
     showOverview,
   } = useWorkout();
-  const [confirmingRestart, setConfirmingRestart] = useState(false);
+  /** Which question is on screen, if either. They are never both. */
+  const [asking, setAsking] = useState<'restart' | 'exit' | null>(null);
   /** Whether the dialog is what stopped the clock, as opposed to the user. */
   const pausedForDialog = useRef(false);
   const id = active.current_exercise;
@@ -52,22 +54,28 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
   const canRestart = state === 'running' || state === 'paused';
 
   /**
-   * Asking the question stops the clock, using the same Pause the user has —
+   * Asking either question stops the clock, using the same Pause the user has —
    * not a second mechanism for the dialog. Two things follow from that: the set
    * cannot finish itself behind the dialog, and the seconds spent deciding are
    * not taken off the set. A set that was already paused stays paused whichever
    * way the question is answered.
+   *
+   * A lead-in is dropped rather than paused, exactly as Cancel and a trip to
+   * the background drop it: there is nothing yet to keep, and a lead-in left
+   * counting behind the dialog would hand over to a set nobody is working.
    */
-  const askRestart = (): void => {
+  const ask = (question: 'restart' | 'exit'): void => {
     if (state === 'running') {
       pausedForDialog.current = true;
       pauseSet();
+    } else if (state === 'countdown') {
+      restartSet();
     }
-    setConfirmingRestart(true);
+    setAsking(question);
   };
 
   const keepAttempt = (): void => {
-    setConfirmingRestart(false);
+    setAsking(null);
     if (!pausedForDialog.current) return;
     pausedForDialog.current = false;
     // Resume computes a fresh deadline from the milliseconds Pause stored, so
@@ -76,16 +84,27 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
   };
 
   const discardAttempt = (): void => {
-    setConfirmingRestart(false);
+    setAsking(null);
     pausedForDialog.current = false;
     restartSet();
+  };
+
+  /**
+   * Leaves the exercise. The attempt is thrown away the same way Restart throws
+   * it away — nothing about it is recorded — but the workout stays, so the sets
+   * already finished are still finished and still carry their weights.
+   */
+  const leaveExercise = (): void => {
+    setAsking(null);
+    pausedForDialog.current = false;
+    onExit();
   };
 
   return (
     <div className="screen exercise">
       <TopBar
         lead={
-          <IconButton label="End workout" onClick={onRequestEnd}>
+          <IconButton label="Exit exercise" onClick={() => ask('exit')}>
             <CloseIcon />
           </IconButton>
         }
@@ -144,7 +163,7 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
             Choose another exercise
           </button>
         ) : canRestart ? (
-          <button type="button" className="btn btn--quiet btn--block" onClick={askRestart}>
+          <button type="button" className="btn btn--quiet btn--block" onClick={() => ask('restart')}>
             Restart exercise
           </button>
         ) : (
@@ -153,7 +172,7 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
         )}
       </div>
 
-      {confirmingRestart ? (
+      {asking === 'restart' ? (
         <ConfirmDialog
           title="Restart this exercise?"
           body="Current progress will be discarded."
@@ -162,6 +181,18 @@ export function ExerciseScreen({ active, onRequestEnd }: Props): ReactNode {
           destructive
           onCancel={keepAttempt}
           onConfirm={discardAttempt}
+        />
+      ) : null}
+
+      {asking === 'exit' ? (
+        <ConfirmDialog
+          title="Exit this exercise?"
+          body="Current progress will be discarded. Exercises already completed in this workout are kept."
+          cancelLabel="Cancel"
+          confirmLabel="Exit Exercise"
+          destructive
+          onCancel={keepAttempt}
+          onConfirm={leaveExercise}
         />
       ) : null}
     </div>

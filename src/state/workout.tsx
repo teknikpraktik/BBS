@@ -49,10 +49,12 @@ interface WorkoutValue {
   selectExercise: (id: ExerciseId) => void;
   showOverview: () => void;
   adjustWeight: (steps: number) => void;
+  adjustWeightFor: (id: ExerciseId, steps: number) => void;
   startSet: () => void;
   pauseSet: () => void;
   resumeSet: () => void;
   restartSet: () => void;
+  exitExercise: () => void;
   endWorkout: () => Promise<void>;
   finishWorkout: () => Promise<void>;
 }
@@ -345,16 +347,32 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
     commit({ ...active, current_exercise: null, running_until: null });
   }, [active, commit]);
 
-  const adjustWeight = useCallback(
-    (steps: number) => {
-      if (!active?.current_exercise) return;
-      const id = active.current_exercise;
+  /**
+   * Moves the weight of any exercise in this workout: the one being worked, or
+   * one already finished and being corrected from the overview. There is one
+   * registered weight per exercise — the number in temporary_weights — and
+   * every stepper during a workout writes to that same number, so correcting a
+   * finished set is the same edit as changing the weight during it.
+   */
+  const adjustWeightFor = useCallback(
+    (id: ExerciseId, steps: number) => {
+      if (!active) return;
       const next = clampWeight(id, active.temporary_weights[id] + steps * WEIGHT_STEP_KG);
       if (next === active.temporary_weights[id]) return;
-      // Deliberately does not touch the timer: weight can change mid-set.
+      // Deliberately touches neither the timer nor completed_exercises: weight
+      // can change mid-set, and correcting a finished set changes the weight
+      // and nothing else — not the time under load, not what is done.
       commit({ ...active, temporary_weights: { ...active.temporary_weights, [id]: next } });
     },
     [active, commit],
+  );
+
+  const adjustWeight = useCallback(
+    (steps: number) => {
+      if (!active?.current_exercise) return;
+      adjustWeightFor(active.current_exercise, steps);
+    },
+    [active, adjustWeightFor],
   );
 
   /**
@@ -418,6 +436,26 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
     });
   }, [active, commit]);
 
+  /**
+   * Leaves the exercise that is open and lets the workout stand.
+   *
+   * It erases the same things Restart does — the clock, the pause, the lead-in
+   * and every second worked — but closes the exercise instead of re-arming it.
+   * completed_exercises is not touched, so the abandoned attempt records
+   * nothing, and the sets already finished in this workout keep their weights
+   * and stay finished. The workout itself is still there to come back to.
+   */
+  const exitExercise = useCallback(() => {
+    if (!active?.current_exercise) return;
+    commit({
+      ...active,
+      current_exercise: null,
+      timer_state: 'ready',
+      timer_remaining_ms: SET_DURATION_MS,
+      running_until: null,
+    });
+  }, [active, commit]);
+
   /** Discards everything about the workout. Nothing reaches History. */
   const endWorkout = useCallback(async () => {
     commit(null);
@@ -456,10 +494,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       selectExercise,
       showOverview,
       adjustWeight,
+      adjustWeightFor,
       startSet,
       pauseSet,
       resumeSet,
       restartSet,
+      exitExercise,
       endWorkout,
       finishWorkout,
     }),
@@ -472,10 +512,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
       selectExercise,
       showOverview,
       adjustWeight,
+      adjustWeightFor,
       startSet,
       pauseSet,
       resumeSet,
       restartSet,
+      exitExercise,
       endWorkout,
       finishWorkout,
     ],

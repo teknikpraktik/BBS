@@ -10,9 +10,14 @@ import { useWorkout } from '../state/workout.tsx';
  * Deliberately empty. No history, no statistics, no graphs — one obvious thing
  * to do, and two quiet ways to get everywhere else, placed at opposite corners
  * so they frame the wordmark instead of crowding it.
+ *
+ * The one thing to do is Start Workout, unless a workout is already in progress
+ * — after leaving an exercise, say — in which case it is that workout. Starting
+ * a second one over the top of it is not offered: the sets already done in it
+ * would go with it.
  */
 export function Home(): ReactNode {
-  const { startWorkout } = useWorkout();
+  const { active, startWorkout } = useWorkout();
 
   const begin = async (): Promise<void> => {
     await startWorkout();
@@ -46,9 +51,9 @@ export function Home(): ReactNode {
         <button
           type="button"
           className="btn btn--primary btn--hero btn--block"
-          onClick={() => void begin()}
+          onClick={() => (active ? navigate('workout') : void begin())}
         >
-          Start Workout
+          {active ? 'Resume Workout' : 'Start Workout'}
         </button>
         <button
           type="button"

@@ -11,7 +11,9 @@ each, the final weight recorded, and nothing else.
 BBS guides a single, fixed workout: Seated Row, Chest Press, Pulldown, Overhead
 Press, Leg Press. Each exercise gets exactly one set of up to 90 seconds. The
 weight shown when the clock reaches 00:00 is what gets saved, and it becomes the
-starting weight for that exercise next time. There are no accounts, no streaks,
+starting weight for that exercise next time. It stays correctable throughout —
+during the set, from the completed exercise on the overview, and afterwards in
+history — because what the stack actually held is something only the user knows. There are no accounts, no streaks,
 no recommendations, no coaching, and no performance scores. A workout can be
 completed with the device fully offline.
 
@@ -50,7 +52,8 @@ src/
     workout.tsx     The workout state machine
   screens/          Home, Workout (exercise / overview / complete), History,
                     WorkoutDetail, Settings, Information
-  components/       TimerDial, WeightControl, ProgressChart, ConfirmDialog, icons
+  components/       TimerDial, WeightControl, WeightDialog, ProgressChart,
+                    ConfirmDialog, icons
   test/             jsdom setup and the in-memory stand-in for db.ts
 server/
   server.mjs        Zero-dependency reference sync backend
@@ -69,7 +72,11 @@ so there is no separate navigation state to keep in step:
 | 5 exercises done                 | Workout Complete |
 
 Every transition is written to IndexedDB immediately, which is why a refresh, a
-crash, or a phone restart mid-workout returns you to the same set.
+crash, or a phone restart mid-workout returns you to the same set. That return
+happens once per launch, for a workout that was already stored when the app
+opened; leaving an exercise puts you on the home screen deliberately, and the
+workout it leaves standing is picked up again from the button there, which reads
+**Resume Workout** while one is in progress.
 
 The clock inside an exercise is one more field on the same object,
 `timer_state`:
@@ -109,7 +116,15 @@ written by it, so an abandoned attempt cannot become a completed set or a
 history entry. It asks for confirmation; cancelling the lead-in does not, since
 there is nothing yet to lose.
 
-Asking the question stops the clock, through the same Pause the user has rather
+**Exit exercise** — the close button in the corner of the exercise screen — is
+Restart's other half: it throws the attempt away in exactly the same way and
+then closes the exercise instead of re-arming it. It asks first, and what it
+promises is narrow on purpose. The workout is untouched: the sets already
+finished in it keep their weights and stay finished, and it is still there to
+come back to from the home screen. Ending a whole workout is a different
+question, asked by the close button on the overview.
+
+Asking either question stops the clock, through the same Pause the user has rather
 than a second mechanism for the dialog. The set therefore cannot finish itself
 behind the dialog, and the seconds spent deciding are not taken off the set:
 Cancel resumes from exactly what was left. A set that was already paused when
@@ -125,14 +140,26 @@ the weight logic in the app:
 | what                        | where it lives                            | who writes it                             |
 | --------------------------- | ----------------------------------------- | ----------------------------------------- |
 | the starting weight         | `current_weights` store, one row per exercise | finishing a workout, and history edits    |
-| the weight in this workout  | `active_workout.temporary_weights[id]`    | the steppers on the exercise screen       |
+| the weight in this workout  | `active_workout.temporary_weights[id]`    | the steppers on the exercise screen, on a completed row of the overview, and on Workout Complete |
 | the recorded weight         | `<exercise>_kg` on a `CompletedWorkout`   | finishing a workout                       |
 | a corrected recorded weight | the same field, edited in place           | the steppers on the history detail screen |
 
 A workout opens by copying the starting weights into `temporary_weights`, which
-is a plain map from exercise to kilograms: five independent numbers, edited only
-by the exercise currently open, so moving between exercises cannot disturb any
-of the others. Nothing is written to history until the fifth set is done.
+is a plain map from exercise to kilograms: five independent numbers, so moving
+between exercises cannot disturb any of the others. Nothing is written to
+history until the fifth set is done.
+
+Within a workout there is **one registered weight per exercise** — that number —
+and every stepper in the workout writes to it. During the set it is what the set
+will be recorded at; after it, tapping the completed row on the overview opens
+the same control over the same number, which is how a set worked at a weight
+other than the one the app was showing gets fixed. The five lines on Workout
+Complete open the same control too, so the fifth set — which never sees the
+overview again — is correctable on the same terms as the other four, right up
+until Finish. The app does not average, guess or
+reconcile anything: correcting a finished set changes the weight and nothing
+else, never the time under load and never what has been completed. What is on
+that number when the fifth set finishes is what is saved.
 
 **The starting weight for the next workout is the newest completed workout's** —
 newest by `completed_at`. `current_weights` is a cache of exactly that, so
@@ -195,10 +222,16 @@ haptics is ever the only channel carrying information.
 Every state of the exercise screen shows one primary button and at most one
 quiet one, so nothing has to be read mid-set: Start / Choose another exercise,
 then Cancel, then Pause / Restart exercise, then Resume / Restart exercise.
-Weight changes are direct manipulation everywhere, during a workout and in
-history alike — steppers, never a dialog. The only dialogs in the app are in
-front of the three things that destroy data: ending a workout, restarting an
-exercise, and deleting a saved workout.
+
+Weight changes are direct manipulation everywhere — the same steppers during a
+set, on a completed row of the overview, on Workout Complete, and in history,
+each tap saved where it lands, with no Save button and no confirmation anywhere.
+Correcting a completed set opens over the screen rather than sitting on it,
+because those screens are lists of five and the steppers are sized for one.
+
+Confirmation is reserved for the four things that destroy data: ending a
+workout, exiting an exercise, restarting an exercise, and deleting a saved
+workout.
 
 ## Deliberately not built
 

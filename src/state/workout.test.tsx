@@ -5,10 +5,12 @@ import { dbMock, resetStore, store } from '../test/db-mock.ts';
 import {
   COUNTDOWN_DURATION_MS,
   COUNTDOWN_SECONDS,
+  EXERCISES,
   SET_DURATION_MS,
   WEIGHT_STEP_KG,
   type ExerciseId,
 } from '../lib/exercises.ts';
+import type { ActiveWorkout } from '../lib/types.ts';
 import { SettingsProvider } from './settings.tsx';
 import { WorkoutProvider, useWorkout } from './workout.tsx';
 import { Workout } from '../screens/Workout.tsx';
@@ -23,7 +25,7 @@ function wrapper({ children }: { children: ReactNode }): ReactNode {
   );
 }
 
-type Hook = { result: { current: ReturnType<typeof useWorkout> } };
+type Hook = { result: { current: ReturnType<typeof useWorkout> }; unmount: () => void };
 
 /** Mounts the provider and waits out the restore read. */
 async function mount(): Promise<Hook> {
@@ -46,6 +48,27 @@ function advance(ms: number): void {
   act(() => {
     vi.advanceTimersByTime(ms);
   });
+}
+
+/** An active workout as it would be read back on a reload. */
+function seedActive(over: Partial<ActiveWorkout> = {}): void {
+  store.activeWorkout = {
+    workout_id: 'w1',
+    workout_started_at: '2026-01-01T00:00:00.000Z',
+    current_exercise: null,
+    completed_exercises: [],
+    temporary_weights: {
+      seated_row: 40,
+      chest_press: 40,
+      pulldown: 40,
+      overhead_press: 25,
+      leg_press: 80,
+    },
+    timer_remaining_ms: SET_DURATION_MS,
+    timer_state: 'ready',
+    running_until: null,
+    ...over,
+  };
 }
 
 /** Start, sit through the lead-in, work the full set. */
@@ -557,5 +580,383 @@ describe('the exercise screen', () => {
     expect(screen.getByRole('timer').textContent).toBe('5');
     advance(COUNTDOWN_DURATION_MS);
     expect(screen.getByRole('timer').textContent).toBe('01:30');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe('exit exercise', () => {
+  it('closes the exercise and leaves the workout standing', async () => {
+    const hook = await openWorkout();
+    act(() => hook.result.current.selectExercise('chest_press'));
+    act(() => hook.result.current.startSet());
+    advance(COUNTDOWN_DURATION_MS + 40_000);
+
+    act(() => hook.result.current.exitExercise());
+
+    expect(hook.result.current.active).not.toBeNull();
+    expect(hook.result.current.phase).toBe('overview');
+    expect(hook.result.current.active?.current_exercise).toBeNull();
+    expect(hook.result.current.active?.timer_state).toBe('ready');
+    expect(hook.result.current.remainingMs).toBe(SET_DURATION_MS);
+  });
+
+  it('records nothing from the attempt it abandons', async () => {
+    const hook = await openWorkout();
+    act(() => hook.result.current.selectExercise('pulldown'));
+    act(() => hook.result.current.startSet());
+    advance(COUNTDOWN_DURATION_MS + 80_000);
+
+    act(() => hook.result.current.exitExercise());
+    // Long enough that the abandoned set would twice have run out.
+    advance(3 * SET_DURATION_MS);
+
+    expect(hook.result.current.active?.completed_exercises).toEqual([]);
+    expect(store.workouts).toEqual([]);
+  });
+
+  it('leaves exercises already completed in this workout alone', async () => {
+    const hook = await openWorkout();
+    act(() => hook.result.current.selectExercise('seated_row'));
+    act(() => hook.result.current.adjustWeight(16));
+    act(() => hook.result.current.startSet());
+    advance(COUNTDOWN_DURATION_MS);
+    advance(SET_DURATION_MS);
+    workSet(hook, 'chest_press');
+
+    act(() => hook.result.current.selectExercise('leg_press'));
+    act(() => hook.result.current.startSet());
+    advance(COUNTDOWN_DURATION_MS + 20_000);
+    act(() => hook.result.current.exitExercise());
+
+    expect(hook.result.current.active?.completed_exercises).toEqual(['seated_row', 'chest_press']);
+    expect(hook.result.current.active?.temporary_weights.seated_row).toBe(16 * WEIGHT_STEP_KG);
+
+    // And the workout can still be finished, carrying those two with it.
+    for (const id of ['pulldown', 'overhead_press', 'leg_press'] as ExerciseId[]) {
+      workSet(hook, id);
+    }
+    await act(async () => {
+      await hook.result.current.finishWorkout();
+    });
+    expect(store.workouts).toHaveLength(1);
+    expect(store.workouts[0]?.seated_row_kg).toBe(16 * WEIGHT_STEP_KG);
+  });
+
+  it('does nothing when no exercise is open', async () => {
+    const hook = await openWorkout();
+    const before = hook.result.current.active;
+
+    act(() => hook.result.current.exitExercise());
+
+    expect(hook.result.current.active).toBe(before);
+  });
+
+  it('asks first, and asks about the exercise rather than the workout', async () => {
+    seedActive({ current_exercise: 'seated_row' });
+    render(<Workout />, { wrapper });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const click = (name: string | RegExp): void => {
+      act(() => screen.getByRole('button', { name }).click());
+    };
+
+    click('Start');
+    advance(COUNTDOWN_DURATION_MS + 30_000);
+
+    click('Exit exercise');
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog.textContent).toContain('Exit this exercise?');
+    expect(dialog.textContent).toContain('Current progress will be discarded.');
+    expect(screen.getByRole('button', { name: 'Exit Exercise' })).toBeTruthy();
+
+    // The question stops the clock, so the set cannot finish behind it.
+    expect(store.activeWorkout?.timer_state).toBe('paused');
+    advance(3 * SET_DURATION_MS);
+    expect(store.activeWorkout?.completed_exercises).toEqual([]);
+
+    // Cancelling gives the set back exactly as it was.
+    click('Cancel');
+    expect(screen.getByRole('timer').textContent).toBe('01:00');
+    expect(store.activeWorkout?.timer_state).toBe('running');
+
+    click('Exit exercise');
+    click('Exit Exercise');
+
+    // The workout is still there; the exercise is not.
+    expect(store.activeWorkout).toBeTruthy();
+    expect(store.activeWorkout?.current_exercise).toBeNull();
+    expect(store.activeWorkout?.completed_exercises).toEqual([]);
+    expect(store.workouts).toEqual([]);
+    expect(screen.queryByRole('timer')).toBeNull();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe('correcting a completed exercise during the workout', () => {
+  it('is the weight the set was worked at, settled afterwards', async () => {
+    const hook = await openWorkout();
+
+    // 40 kg on the stack, raised to 50 halfway through the set.
+    act(() => hook.result.current.selectExercise('seated_row'));
+    act(() => hook.result.current.adjustWeight(16));
+    act(() => hook.result.current.startSet());
+    advance(COUNTDOWN_DURATION_MS + 45_000);
+    act(() => hook.result.current.adjustWeight(4));
+    expect(hook.result.current.active?.temporary_weights.seated_row).toBe(50);
+    advance(45_000);
+    expect(hook.result.current.active?.completed_exercises).toEqual(['seated_row']);
+
+    // Back on the overview, the user settles on 45 for the set as a whole.
+    act(() => hook.result.current.adjustWeightFor('seated_row', -2));
+    expect(hook.result.current.active?.temporary_weights.seated_row).toBe(45);
+
+    for (const id of ['chest_press', 'pulldown', 'overhead_press', 'leg_press'] as ExerciseId[]) {
+      workSet(hook, id);
+    }
+    await act(async () => {
+      await hook.result.current.finishWorkout();
+    });
+
+    // 45 is what history holds and what the next workout opens on.
+    expect(store.workouts).toHaveLength(1);
+    expect(store.workouts[0]?.seated_row_kg).toBe(45);
+    expect(store.currentWeights.seated_row).toBe(45);
+  });
+
+  it('changes the weight and nothing else about the set', async () => {
+    const hook = await openWorkout();
+    workSet(hook, 'chest_press');
+    const doneBefore = hook.result.current.active?.completed_exercises;
+
+    act(() => hook.result.current.adjustWeightFor('chest_press', 6));
+
+    expect(hook.result.current.active?.temporary_weights.chest_press).toBe(6 * WEIGHT_STEP_KG);
+    // The set is still done, still ninety seconds, the clock still at rest.
+    expect(hook.result.current.active?.completed_exercises).toEqual(doneBefore);
+    expect(hook.result.current.active?.timer_state).toBe('ready');
+    expect(hook.result.current.active?.timer_remaining_ms).toBe(SET_DURATION_MS);
+    expect(hook.result.current.remainingMs).toBe(SET_DURATION_MS);
+    expect(hook.result.current.active?.running_until).toBeNull();
+  });
+
+  it('leaves the other four exercises where they were', async () => {
+    const hook = await openWorkout();
+    workSet(hook, 'seated_row');
+    const before = { ...hook.result.current.active?.temporary_weights };
+
+    act(() => hook.result.current.adjustWeightFor('seated_row', 4));
+
+    expect(hook.result.current.active?.temporary_weights).toEqual({
+      ...before,
+      seated_row: 4 * WEIGHT_STEP_KG,
+    });
+  });
+
+  it('works the same for all five exercises', async () => {
+    for (const item of EXERCISES) {
+      resetStore();
+      const hook = await openWorkout();
+      workSet(hook, item.id);
+      expect(hook.result.current.active?.completed_exercises).toEqual([item.id]);
+
+      act(() => hook.result.current.adjustWeightFor(item.id, 8));
+
+      expect(hook.result.current.active?.temporary_weights[item.id]).toBe(8 * WEIGHT_STEP_KG);
+      expect(hook.result.current.active?.completed_exercises).toEqual([item.id]);
+      hook.unmount();
+    }
+  });
+
+  it('stays inside the same ceilings as the steppers during a set', async () => {
+    const hook = await openWorkout();
+    workSet(hook, 'overhead_press');
+
+    act(() => hook.result.current.adjustWeightFor('overhead_press', -4));
+    expect(hook.result.current.active?.temporary_weights.overhead_press).toBe(0);
+
+    act(() => hook.result.current.adjustWeightFor('overhead_press', 1000));
+    expect(hook.result.current.active?.temporary_weights.overhead_press).toBe(250);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe('the completed exercise block on the overview', () => {
+  const click = (name: string | RegExp): void => {
+    act(() => screen.getByRole('button', { name }).click());
+  };
+
+  async function openOverview(): Promise<void> {
+    seedActive({ completed_exercises: ['seated_row'] });
+    render(<Workout />, { wrapper });
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
+
+  it('is a live button that says what it does', async () => {
+    await openOverview();
+
+    const row = screen.getByRole('button', { name: /^Seated Row, completed at 40 kilograms/ });
+    expect(row.hasAttribute('disabled')).toBe(false);
+    expect(row.textContent).toContain('Adjust weight');
+  });
+
+  it('opens the weight for correction and saves each tap', async () => {
+    await openOverview();
+
+    click(/^Seated Row, completed at 40 kilograms/);
+    expect(screen.getByRole('dialog').textContent).toContain('Seated Row');
+
+    click(/^Increase weight for Seated Row/);
+    click(/^Increase weight for Seated Row/);
+    expect(store.activeWorkout?.temporary_weights.seated_row).toBe(45);
+
+    click('Done');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    // The corrected number is on the overview straight away.
+    expect(
+      screen.getByRole('button', { name: /^Seated Row, completed at 45 kilograms/ }).textContent,
+    ).toContain('45 kg');
+  });
+
+  it('does not disturb the set it belongs to', async () => {
+    await openOverview();
+
+    click(/^Seated Row, completed at 40 kilograms/);
+    click(/^Decrease weight for Seated Row/);
+    click('Done');
+
+    expect(store.activeWorkout?.temporary_weights.seated_row).toBe(37.5);
+    expect(store.activeWorkout?.completed_exercises).toEqual(['seated_row']);
+    expect(store.activeWorkout?.timer_state).toBe('ready');
+    expect(store.activeWorkout?.timer_remaining_ms).toBe(SET_DURATION_MS);
+    expect(store.workouts).toEqual([]);
+  });
+
+  it('still starts an exercise that has not been done', async () => {
+    await openOverview();
+
+    click(/^Start Chest Press at 40 kilograms/);
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(store.activeWorkout?.current_exercise).toBe('chest_press');
+    expect(screen.getByRole('button', { name: 'Start' })).toBeTruthy();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe('correcting a weight on Workout Complete', () => {
+  const click = (name: string | RegExp): void => {
+    act(() => screen.getByRole('button', { name }).click());
+  };
+
+  /** The screen the fifth set hands over to: all five done, nothing saved yet. */
+  async function openComplete(): Promise<void> {
+    seedActive({ completed_exercises: EXERCISES.map((e) => e.id) });
+    render(<Workout />, { wrapper });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: 'Finish' })).toBeTruthy();
+  }
+
+  /** Lets the local-first writes behind Finish settle. */
+  async function flush(): Promise<void> {
+    await act(async () => {
+      for (let turn = 0; turn < 8; turn += 1) await Promise.resolve();
+    });
+  }
+
+  it('corrects the fifth exercise, which never sees the overview again', async () => {
+    await openComplete();
+
+    click(/^Leg Press, recorded at 80 kilograms/);
+    expect(screen.getByRole('dialog').textContent).toContain('Leg Press');
+    click(/^Decrease weight for Leg Press/);
+    click(/^Decrease weight for Leg Press/);
+    click('Done');
+
+    expect(store.activeWorkout?.temporary_weights.leg_press).toBe(75);
+    // And it is on the screen straight away, without a reload or a save.
+    expect(
+      screen.getByRole('button', { name: /^Leg Press, recorded at 75 kilograms/ }).textContent,
+    ).toContain('75kg');
+  });
+
+  it('corrects any of the first four just the same', async () => {
+    await openComplete();
+
+    for (const [name, id] of [
+      ['Seated Row', 'seated_row'],
+      ['Chest Press', 'chest_press'],
+      ['Pulldown', 'pulldown'],
+      ['Overhead Press', 'overhead_press'],
+    ] as [string, ExerciseId][]) {
+      click(new RegExp(`^${name}, recorded at`));
+      click(new RegExp(`^Increase weight for ${name}`));
+      click('Done');
+      expect(store.activeWorkout?.temporary_weights[id]).toBe(
+        (id === 'overhead_press' ? 25 : 40) + WEIGHT_STEP_KG,
+      );
+    }
+
+    // Five independent numbers still: correcting four did not move the fifth.
+    expect(store.activeWorkout?.temporary_weights.leg_press).toBe(80);
+  });
+
+  it('saves the corrected weight to history and to the next workout', async () => {
+    await openComplete();
+
+    click(/^Leg Press, recorded at 80 kilograms/);
+    click(/^Increase weight for Leg Press/);
+    click(/^Increase weight for Leg Press/);
+    click('Done');
+
+    click('Finish');
+    await flush();
+
+    expect(store.workouts).toHaveLength(1);
+    expect(store.workouts[0]?.leg_press_kg).toBe(85);
+    expect(store.workouts[0]?.seated_row_kg).toBe(40);
+    // The starting weight for next time follows the correction.
+    expect(store.currentWeights.leg_press).toBe(85);
+    expect(store.activeWorkout).toBeUndefined();
+  });
+
+  it('opens the next workout on the corrected weight', async () => {
+    const hook = await openWorkout();
+    for (const item of EXERCISES) workSet(hook, item.id);
+    expect(hook.result.current.phase).toBe('complete');
+
+    act(() => hook.result.current.adjustWeightFor('leg_press', 20));
+    act(() => hook.result.current.adjustWeightFor('seated_row', 12));
+    await act(async () => {
+      await hook.result.current.finishWorkout();
+    });
+
+    expect(store.workouts[0]?.leg_press_kg).toBe(20 * WEIGHT_STEP_KG);
+    expect(store.workouts[0]?.seated_row_kg).toBe(12 * WEIGHT_STEP_KG);
+
+    await act(async () => {
+      await hook.result.current.startWorkout();
+    });
+    expect(hook.result.current.active?.temporary_weights.leg_press).toBe(20 * WEIGHT_STEP_KG);
+    expect(hook.result.current.active?.temporary_weights.seated_row).toBe(12 * WEIGHT_STEP_KG);
+  });
+
+  it('leaves the rest of the screen as it was', async () => {
+    await openComplete();
+
+    // Nothing new between the fifth set and Finish: the same title, the same
+    // five lines, and no dialog until one is asked for.
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Workout Complete' })).toBeTruthy();
+    expect(document.querySelectorAll('.summary__item')).toHaveLength(EXERCISES.length);
+    expect(store.workouts).toEqual([]);
   });
 });
