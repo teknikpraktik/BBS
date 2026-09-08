@@ -725,6 +725,14 @@ ol {
   width: 44px;
   height: 44px;
   font-size: var(--fs-label);
+  /* Proportional figures, not tabular. There is nothing to line up inside a
+     circle, and tabular digits are padded wide enough to reach its edge. The
+     tighter tracking and the single line are the rest of the same fit: the
+     label has to sit well inside 44 px at every font the device might pick. */
+  font-variant-numeric: normal;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .weight--compact .weight__value {

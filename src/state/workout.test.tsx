@@ -586,7 +586,7 @@ describe('the exercise screen', () => {
 /* -------------------------------------------------------------------------- */
 
 describe('exit exercise', () => {
-  it('closes the exercise and leaves the workout standing', async () => {
+  it('steps back to the overview and leaves the workout standing', async () => {
     const hook = await openWorkout();
     act(() => hook.result.current.selectExercise('chest_press'));
     act(() => hook.result.current.startSet());
@@ -690,6 +690,39 @@ describe('exit exercise', () => {
     expect(store.activeWorkout?.completed_exercises).toEqual([]);
     expect(store.workouts).toEqual([]);
     expect(screen.queryByRole('timer')).toBeNull();
+
+    // And what is on screen is the workout it went back to: five machines to
+    // choose from, the one it just left included.
+    expect(screen.getByRole('button', { name: /^Start Seated Row at/ })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: /^Start .* at .* kilograms$/ })).toHaveLength(
+      EXERCISES.length,
+    );
+  });
+
+  it('hands the workout back to the overview, where the same corner ends it', async () => {
+    seedActive({ current_exercise: 'pulldown', completed_exercises: ['seated_row'] });
+    render(<Workout />, { wrapper });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const click = (name: string | RegExp): void => {
+      act(() => screen.getByRole('button', { name }).click());
+    };
+
+    click('Start');
+    advance(COUNTDOWN_DURATION_MS + 20_000);
+    click('Exit exercise');
+    click('Exit Exercise');
+
+    // On the overview the close button is about the workout, not the exercise.
+    expect(screen.getByRole('button', { name: 'End workout' })).toBeTruthy();
+    click('End workout');
+    expect(screen.getByRole('alertdialog').textContent).toContain('End workout?');
+    click('End Workout');
+
+    // Nothing survives it, and nothing reached history on the way out.
+    expect(store.activeWorkout).toBeUndefined();
+    expect(store.workouts).toEqual([]);
   });
 });
 

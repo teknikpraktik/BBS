@@ -72,11 +72,7 @@ so there is no separate navigation state to keep in step:
 | 5 exercises done                 | Workout Complete |
 
 Every transition is written to IndexedDB immediately, which is why a refresh, a
-crash, or a phone restart mid-workout returns you to the same set. That return
-happens once per launch, for a workout that was already stored when the app
-opened; leaving an exercise puts you on the home screen deliberately, and the
-workout it leaves standing is picked up again from the button there, which reads
-**Resume Workout** while one is in progress.
+crash, or a phone restart mid-workout returns you to the same set.
 
 The clock inside an exercise is one more field on the same object,
 `timer_state`:
@@ -118,11 +114,15 @@ there is nothing yet to lose.
 
 **Exit exercise** — the close button in the corner of the exercise screen — is
 Restart's other half: it throws the attempt away in exactly the same way and
-then closes the exercise instead of re-arming it. It asks first, and what it
-promises is narrow on purpose. The workout is untouched: the sets already
-finished in it keep their weights and stay finished, and it is still there to
-come back to from the home screen. Ending a whole workout is a different
-question, asked by the close button on the overview.
+then closes the exercise instead of re-arming it, which puts the overview back
+on screen. It asks first, and what it promises is narrow on purpose: the sets
+already finished keep their weights and stay finished, and the workout carries
+on from the list of five. There is no navigation behind it — clearing
+`current_exercise` is the whole of it.
+
+The two ways out are therefore one step apart, in the same corner. Inside an
+exercise that corner leaves the machine; on the overview it ends the workout,
+which is a different question and asks its own.
 
 Asking either question stops the clock, through the same Pause the user has rather
 than a second mechanism for the dialog. The set therefore cannot finish itself

@@ -437,13 +437,14 @@ export function WorkoutProvider({ children }: { children: ReactNode }): ReactNod
   }, [active, commit]);
 
   /**
-   * Leaves the exercise that is open and lets the workout stand.
+   * Leaves the exercise that is open and steps back to the overview.
    *
    * It erases the same things Restart does — the clock, the pause, the lead-in
    * and every second worked — but closes the exercise instead of re-arming it.
    * completed_exercises is not touched, so the abandoned attempt records
    * nothing, and the sets already finished in this workout keep their weights
-   * and stay finished. The workout itself is still there to come back to.
+   * and stay finished. Clearing the current exercise is also what puts the
+   * overview back on screen, so leaving a machine costs nothing but the attempt.
    */
   const exitExercise = useCallback(() => {
     if (!active?.current_exercise) return;

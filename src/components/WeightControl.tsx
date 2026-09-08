@@ -30,6 +30,13 @@ export function WeightControl({
   const { maxKg } = exercise(exerciseId);
   const step = formatWeight(WEIGHT_STEP_KG);
   const on = labelSuffix ? ` for ${labelSuffix}` : '';
+  /**
+   * The thin space between the sign and the number is a full-size luxury. In
+   * the compact control it is the difference between sitting inside the circle
+   * and crowding its edge, and at that size sign and number read as one mark
+   * without it.
+   */
+  const face = (sign: string): string => (compact ? `${sign}${step}` : `${sign}\u2009${step}`);
 
   return (
     <div className={compact ? 'weight weight--compact' : 'weight'}>
@@ -40,7 +47,7 @@ export function WeightControl({
         disabled={weightKg <= MIN_WEIGHT_KG}
         aria-label={`Decrease weight${on} by ${step} kilograms`}
       >
-        &minus;&thinsp;{step}
+        {face('\u2212')}
       </button>
 
       <div className="weight__value" aria-live="polite">
@@ -55,7 +62,7 @@ export function WeightControl({
         disabled={weightKg >= maxKg}
         aria-label={`Increase weight${on} by ${step} kilograms`}
       >
-        +&thinsp;{step}
+        {face('+')}
       </button>
     </div>
   );

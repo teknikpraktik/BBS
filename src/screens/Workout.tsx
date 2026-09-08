@@ -10,10 +10,10 @@ import { useWorkout } from '../state/workout.tsx';
 /**
  * Routes the workout phase to a screen and owns the dialog that ends a workout.
  *
- * The two ways out are not the same door. Inside an exercise the close button
- * leaves that exercise and keeps the workout, so its question lives on the
- * exercise screen; on the overview it ends the whole workout, and that question
- * lives here.
+ * The two ways out are not the same door, and they are one step apart. Inside an
+ * exercise the close button leaves that exercise for the overview and keeps the
+ * workout, so its question lives on the exercise screen; on the overview the
+ * same corner ends the whole workout, and that question lives here.
  */
 export function Workout(): ReactNode {
   const { loaded, active, phase, endWorkout, exitExercise } = useWorkout();
@@ -32,21 +32,12 @@ export function Workout(): ReactNode {
     replace('');
   };
 
-  /**
-   * Closes the exercise and goes home. The workout is left standing — including
-   * every set already completed in it — and is picked up again from the home
-   * screen.
-   */
-  const leaveExercise = (): void => {
-    exitExercise();
-    replace('');
-  };
-
   return (
     <>
-      {phase === 'exercise' ? (
-        <ExerciseScreen active={active} onExit={leaveExercise} />
-      ) : null}
+      {/* Exit takes no route of its own: clearing the current exercise is what
+          puts the overview on screen, so the user steps back into the workout —
+          every set already completed still there — rather than out of it. */}
+      {phase === 'exercise' ? <ExerciseScreen active={active} onExit={exitExercise} /> : null}
       {phase === 'overview' ? (
         <OverviewScreen active={active} onRequestEnd={() => setConfirming(true)} />
       ) : null}
