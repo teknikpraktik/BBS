@@ -7,13 +7,23 @@ interface Props {
   confirmLabel: string;
   cancelLabel: string;
   destructive?: boolean;
+  /**
+   * Which answer leads: it is listed first, filled in, and takes focus.
+   *
+   * "cancel", the default, is for a question the user has not yet answered —
+   * the dialog offers a way on and keeps the destructive answer quiet
+   * underneath. "confirm" is for a question already answered by the gesture
+   * that opened it, where the way out is the point and burying it under Cancel
+   * only makes the user look twice.
+   */
+  lead?: 'cancel' | 'confirm';
   onConfirm: () => void;
   onCancel: () => void;
 }
 
 /**
- * Modal confirmation. Used for the one action in the app that destroys data.
- * The safe choice is listed first and receives focus.
+ * Modal confirmation. Used for the handful of actions in the app that destroy
+ * data. Escape and the backdrop always cancel, whichever answer leads.
  */
 export function ConfirmDialog({
   title,
@@ -21,13 +31,19 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   destructive = false,
+  lead = 'cancel',
   onConfirm,
   onCancel,
 }: Props): ReactNode {
-  const cancelRef = useRef<HTMLButtonElement>(null);
+  const leadRef = useRef<HTMLButtonElement>(null);
+  const answers = {
+    cancel: { label: cancelLabel, onClick: onCancel },
+    confirm: { label: confirmLabel, onClick: onConfirm },
+  };
+  const follows = lead === 'confirm' ? 'cancel' : 'confirm';
 
   useEffect(() => {
-    cancelRef.current?.focus();
+    leadRef.current?.focus();
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') onCancel();
     };
@@ -47,21 +63,28 @@ export function ConfirmDialog({
           {title}
         </h2>
         {body ? <p className="dialog__body">{body}</p> : null}
+        {/* One filled button and one outlined one, in the order the lead sets.
+            The follower stays a full-width button rather than a quiet line, so
+            both answers are equally easy to hit: leading decides which one is
+            obvious, not which one is reachable. A destructive answer that does
+            not lead keeps its quieter treatment. */}
         <div className="dialog__actions">
           <button
             type="button"
-            ref={cancelRef}
+            ref={leadRef}
             className="btn btn--primary btn--block"
-            onClick={onCancel}
+            onClick={answers[lead].onClick}
           >
-            {cancelLabel}
+            {answers[lead].label}
           </button>
           <button
             type="button"
-            className={`btn btn--block ${destructive ? 'btn--destructive' : 'btn--outline'}`}
-            onClick={onConfirm}
+            className={`btn btn--block ${
+              follows === 'confirm' && destructive ? 'btn--destructive' : 'btn--outline'
+            }`}
+            onClick={answers[follows].onClick}
           >
-            {confirmLabel}
+            {answers[follows].label}
           </button>
         </div>
       </div>

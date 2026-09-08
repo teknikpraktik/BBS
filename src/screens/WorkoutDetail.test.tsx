@@ -31,6 +31,20 @@ function click(name: RegExp | string): void {
 }
 
 describe('correcting a past workout', () => {
+  it('leads the delete question with Delete, not with Cancel', async () => {
+    await open();
+
+    click('Delete workout');
+    const buttons = [...document.querySelectorAll('.dialog__actions button')];
+    expect(buttons.map((b) => b.textContent)).toEqual(['Delete', 'Cancel']);
+    expect(buttons[0]?.classList.contains('btn--primary')).toBe(true);
+
+    // Cancel still cancels, and the record is untouched by the question.
+    click('Cancel');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(await getWorkout('w1')).toBeTruthy();
+  });
+
   it('shows every exercise at its saved weight', async () => {
     await open();
 

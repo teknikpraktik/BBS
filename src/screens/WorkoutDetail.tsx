@@ -166,13 +166,16 @@ export function WorkoutDetail({ workoutId }: Props): ReactNode {
         </>
       ) : null}
 
+      {/* Deleting leads: the button below the record is already the answer, and
+          the question is here to say the reach of it — the charts as well as the
+          history — not to argue against it. */}
       {confirmingDelete ? (
         <ConfirmDialog
           title="Delete this workout?"
           body="It will be removed from your history and from the progress charts. This cannot be undone."
           cancelLabel="Cancel"
           confirmLabel="Delete"
-          destructive
+          lead="confirm"
           onCancel={() => setConfirmingDelete(false)}
           onConfirm={() => void remove()}
         />

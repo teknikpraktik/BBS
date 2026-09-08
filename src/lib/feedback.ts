@@ -14,25 +14,31 @@ interface Tone {
   gain: number;
   /** seconds to wait before playing */
   delay?: number;
+  /** seconds of fade-in. Longer takes the click off the front of a quiet cue. */
+  attack?: number;
   type?: OscillatorType;
 }
 
 /**
- * The set announces itself three times and no more: one pip when the lead-in
- * ends and the clock actually starts, three bright blips for the last three
- * seconds, and a low, dull note when it reaches zero. Pressing Start makes no
- * sound at all — you pressed the button, you already know; the pip five
- * seconds later is the one that tells you something you cannot see.
+ * The set announces itself three times and no more: one soft note when the
+ * lead-in ends and the clock actually starts, three bright blips for the last
+ * three seconds, and a low, dull note when it reaches zero. Pressing Start
+ * makes no sound at all — you pressed the button, you already know; the note
+ * five seconds later is the one that tells you something you cannot see.
  */
 const CUES: Record<Cue, Tone[]> = {
   /* Silent by design. The vibration below still fires, which is enough
      acknowledgement for a button you are looking at as you press it. */
   start: [],
-  /* The one pip in the app that means "now". It lands at the end of the
+  /* The one cue in the app that means "now". It lands at the end of the
      lead-in, when the user is looking at the machine rather than the screen,
-     so it is the only cue that has to carry on its own — bright, short, and
-     unlike both the countdown blip and the note at zero. */
-  go: [{ freq: 880, duration: 0.14, gain: 0.7, type: 'triangle' }],
+     so it is the only cue that has to carry on its own — but carrying is not
+     the same as being loud. A plain sine with the click faded off its front
+     reads as a soft knock at arm's length: unmistakable if you are waiting for
+     it, and nothing to make anyone else look up. It stays apart from the
+     countdown blip by being dull where that is bright, and from the note at
+     zero by being one note, shorter and higher. */
+  go: [{ freq: 392, duration: 0.22, gain: 0.42, attack: 0.02 }],
   pause: [{ freq: 200, duration: 0.09, gain: 0.4 }],
   resume: [{ freq: 280, duration: 0.09, gain: 0.4 }],
   countdown: [{ freq: 660, duration: 0.1, gain: 0.6, type: 'triangle' }],
@@ -90,7 +96,7 @@ function playTone(audio: AudioContext, tone: Tone, at: number): void {
   osc.type = tone.type ?? 'sine';
   osc.frequency.setValueAtTime(tone.freq, at);
 
-  const attack = 0.008;
+  const attack = tone.attack ?? 0.008;
   gain.gain.setValueAtTime(0, at);
   gain.gain.linearRampToValueAtTime(tone.gain, at + attack);
   gain.gain.exponentialRampToValueAtTime(0.0001, at + tone.duration);

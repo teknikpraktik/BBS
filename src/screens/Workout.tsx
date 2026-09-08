@@ -43,13 +43,16 @@ export function Workout(): ReactNode {
       ) : null}
       {phase === 'complete' ? <CompleteScreen active={active} /> : null}
 
+      {/* Ending leads, for the same reason exiting an exercise does: the cross
+          in the corner is already the answer, and the question only says what
+          it costs. */}
       {confirming ? (
         <ConfirmDialog
           title="End workout?"
           body="This workout will not be saved."
           cancelLabel="Continue Workout"
           confirmLabel="End Workout"
-          destructive
+          lead="confirm"
           onCancel={() => setConfirming(false)}
           onConfirm={() => void discard()}
         />

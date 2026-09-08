@@ -3,7 +3,7 @@
 A minimal Big Five workout PWA. Five fixed exercises, one 90 second working set
 each, the final weight recorded, and nothing else.
 
-> Pick a weight → 5, 4, 3, 2, 1, pip → work for 90 seconds → the final weight is
+> Pick a weight → 5, 4, 3, 2, 1, go → work for 90 seconds → the final weight is
 > recorded → move on → watch it change over time.
 
 ## The product in one paragraph
@@ -92,8 +92,8 @@ either one. Pausing stores the remaining milliseconds; resuming computes a new
 deadline from it.
 
 **Start does not start the set.** It opens a five second lead-in — 5, 4, 3, 2,
-1, then a single pip — which exists so the stack is already moving and the user
-is in position before time under load starts counting. The lead-in is a state of
+1, then a single soft note — which exists so the stack is already moving and
+the user is in position before time under load starts counting. The lead-in is a state of
 its own precisely so those five seconds cannot reach the set: `timer_remaining_ms`
 holds the full, untouched set length throughout, and the set's deadline is
 computed from it at the hand-off rather than from a duration repeated anywhere.
@@ -232,6 +232,16 @@ because those screens are lists of five and the steppers are sized for one.
 Confirmation is reserved for the four things that destroy data: ending a
 workout, exiting an exercise, restarting an exercise, and deleting a saved
 workout.
+
+Which answer a dialog leads with — listed first, filled in, and focused —
+follows what opened it. Three of the four are opened by a control that says the
+answer already: the cross in the corner, twice, and Delete workout. Those lead
+with the destructive answer, because the question is there to say what it costs,
+not to argue against a decision the user has made. Restarting an exercise leads
+with Cancel: nothing sent the user there but a change of mind mid-set, and
+carrying on is the likelier one. Either way both answers are full-width buttons
+— leading decides which is obvious, never which is reachable — and Escape and
+the backdrop always cancel.
 
 ## Deliberately not built
 

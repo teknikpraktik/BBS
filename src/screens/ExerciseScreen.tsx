@@ -184,13 +184,16 @@ export function ExerciseScreen({ active, onExit }: Props): ReactNode {
         />
       ) : null}
 
+      {/* Leaving leads here. Pressing the cross is already the answer; the
+          question is only there to say what it costs, and the sets already
+          finished are not part of that. */}
       {asking === 'exit' ? (
         <ConfirmDialog
           title="Exit this exercise?"
           body="Current progress will be discarded. Exercises already completed in this workout are kept."
           cancelLabel="Cancel"
           confirmLabel="Exit Exercise"
-          destructive
+          lead="confirm"
           onCancel={keepAttempt}
           onConfirm={leaveExercise}
         />

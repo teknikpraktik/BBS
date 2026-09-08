@@ -50,6 +50,15 @@ function advance(ms: number): void {
   });
 }
 
+/** The dialog's answers, top to bottom, and which one is filled in. */
+function dialogAnswers(): { labels: string[]; lead: string | null } {
+  const buttons = [...document.querySelectorAll('.dialog__actions button')];
+  return {
+    labels: buttons.map((b) => b.textContent ?? ''),
+    lead: buttons.find((b) => b.classList.contains('btn--primary'))?.textContent ?? null,
+  };
+}
+
 /** An active workout as it would be read back on a reload. */
 function seedActive(over: Partial<ActiveWorkout> = {}): void {
   store.activeWorkout = {
@@ -487,6 +496,8 @@ describe('the exercise screen', () => {
     expect(screen.getByRole('alertdialog').textContent).toContain(
       'Current progress will be discarded.',
     );
+    // Nothing sent the user here but a change of mind, so carrying on leads.
+    expect(dialogAnswers()).toEqual({ labels: ['Cancel', 'Restart'], lead: 'Cancel' });
 
     // Cancelling leaves the set exactly as it was.
     click('Cancel');
@@ -669,7 +680,8 @@ describe('exit exercise', () => {
     const dialog = screen.getByRole('alertdialog');
     expect(dialog.textContent).toContain('Exit this exercise?');
     expect(dialog.textContent).toContain('Current progress will be discarded.');
-    expect(screen.getByRole('button', { name: 'Exit Exercise' })).toBeTruthy();
+    // The cross was already the answer, so leaving leads and is the filled one.
+    expect(dialogAnswers()).toEqual({ labels: ['Exit Exercise', 'Cancel'], lead: 'Exit Exercise' });
 
     // The question stops the clock, so the set cannot finish behind it.
     expect(store.activeWorkout?.timer_state).toBe('paused');
@@ -718,6 +730,10 @@ describe('exit exercise', () => {
     expect(screen.getByRole('button', { name: 'End workout' })).toBeTruthy();
     click('End workout');
     expect(screen.getByRole('alertdialog').textContent).toContain('End workout?');
+    expect(dialogAnswers()).toEqual({
+      labels: ['End Workout', 'Continue Workout'],
+      lead: 'End Workout',
+    });
     click('End Workout');
 
     // Nothing survives it, and nothing reached history on the way out.
